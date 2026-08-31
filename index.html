@@ -243,11 +243,11 @@
 </div>
 
 <!-- FOOTER -->
-<div class="footer">© 2026 SMP NEGERI 1 SOBANG | Absensi Online v2.2</div>
+<div class="footer">© 2026 SMP NEGERI 1 SOBANG | Absensi Online v2.3</div>
 
 <script>
   // ==================== KONFIGURASI ====================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbx15mMk33MGXE944M77M8YLu9O93E3ddF5WpT-d2CyG1ZxiabIxKX4QGcE4CdK-qCNUwA/exec'; // Ganti dengan URL Web App Anda
+  const API_URL = 'https://script.google.com/macros/s/AKfycbx1ZaSWOWdX4inW7DBLTq8BVQnxM3VeYqUsef2Jwgc65Hiv6dADgZcFrh203ktShpaYug/exec'; // Ganti dengan URL Web App Anda
   
   // ==================== GLOBAL ====================
   let currentUser = null;
@@ -297,17 +297,50 @@
     setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3500);
   }
   
-  // ==================== API HELPER ====================
-  function callApi(action, data = {}) {
-    return fetch(API_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action, ...data })
-    })
-    .then(response => response.json())
-    .catch(err => {
-      showToast('Gagal terhubung ke server: ' + err.message, 'error');
-      throw err;
+  // ==================== JSONP HELPER (BYPASS CORS) ====================
+  function jsonp(action, params = {}) {
+    return new Promise((resolve, reject) => {
+      const callbackName = 'jsonp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+      
+      const url = new URL(API_URL);
+      url.searchParams.append('action', action);
+      url.searchParams.append('callback', callbackName);
+      
+      // Tambahkan semua params
+      Object.keys(params).forEach(key => {
+        if (params[key] !== undefined && params[key] !== null) {
+          if (typeof params[key] === 'object') {
+            url.searchParams.append(key, JSON.stringify(params[key]));
+          } else {
+            url.searchParams.append(key, params[key]);
+          }
+        }
+      });
+      
+      // Timeout 30 detik
+      const timeout = setTimeout(() => {
+        if (window[callbackName]) {
+          delete window[callbackName];
+          reject(new Error('Request timeout'));
+        }
+      }, 30000);
+      
+      window[callbackName] = function(data) {
+        clearTimeout(timeout);
+        resolve(data);
+        delete window[callbackName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+      };
+      
+      const script = document.createElement('script');
+      script.src = url.toString();
+      script.onerror = function() {
+        clearTimeout(timeout);
+        reject(new Error('JSONP request failed'));
+        delete window[callbackName];
+        if (script.parentNode) script.parentNode.removeChild(script);
+      };
+      document.body.appendChild(script);
     });
   }
   
@@ -365,7 +398,7 @@
     const pin = document.getElementById('login-pin').value.trim();
     if (!pin) { showToast('Masukkan PIN!', 'error'); return; }
     
-    callApi('verifyLogin', { role: 'all', pin: pin })
+    jsonp('verifyLogin', { role: 'all', pin: pin })
       .then(result => {
         if (result.success) {
           currentUser = { role: result.role, pin: pin, nama: result.nama || '' };
@@ -382,7 +415,11 @@
           document.getElementById('login-pin').focus();
         }
       })
-      .catch(err => { showToast('Error: ' + err.message, 'error'); });
+      .catch(err => { 
+        showToast('Gagal koneksi ke server: ' + err.message, 'error');
+        document.getElementById('login-status').innerHTML = 
+          `<div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;">❌ Gagal terhubung ke server</div>`;
+      });
   }
   
   function doLogout() {
@@ -410,7 +447,7 @@
       </div>
     `;
     
-    callApi('getDashboardStats')
+    jsonp('getDashboardStats')
       .then(data => {
         let html = `
           <div class="dashboard-grid">
@@ -441,10 +478,11 @@
         document.getElementById('dashboard-stats').innerHTML = html;
       })
       .catch(() => {
-        document.getElementById('dashboard-stats').innerHTML = '<p style="color:red;">❌ Gagal memuat statistik</p>';
+        document.getElementById('dashboard-stats').innerHTML = '<p style="color:red;">❌ Gagal memuat statistik. Periksa koneksi internet.</p>';
+        showToast('Gagal memuat dashboard', 'error');
       });
     
-    callApi('getWaktuOperasional')
+    jsonp('getWaktuOperasional')
       .then(data => {
         const now = new Date();
         const jam = now.toTimeString().slice(0,5);
@@ -484,7 +522,7 @@
       });
     
     // Load rekap hari ini
-    callApi('getRekapHariIni')
+    jsonp('getRekapHariIni')
       .then(data => {
         const container = document.getElementById('rekap-hari-ini');
         let html = '';
@@ -578,7 +616,7 @@
     const hasil = document.getElementById('ortu-hasil');
     hasil.innerHTML = '<div class="loading">Mencari data...</div>';
     
-    callApi('cekAbsensiSiswa', { nisn, tglMulai, tglSelesai })
+    jsonp('cekAbsensiSiswa', { nisn, tglMulai, tglSelesai })
       .then(data => {
         if (data.length === 0) {
           hasil.innerHTML = '<p style="color:orange;padding:10px;">⚠️ Tidak ada data untuk periode ini</p>';
@@ -598,6 +636,7 @@
       })
       .catch(() => {
         hasil.innerHTML = '<p style="color:red;">❌ Gagal memuat data</p>';
+        showToast('Gagal memuat data', 'error');
       });
   }
   
@@ -691,7 +730,7 @@
     const resultEl = document.getElementById('scan-result');
     resultEl.innerHTML = '<div class="loading">Memproses...</div>';
     
-    callApi('scanQR', { barcodeData, role })
+    jsonp('scanQR', { barcodeData, role })
       .then(result => {
         if (result.success) {
           resultEl.innerHTML = `
@@ -714,6 +753,7 @@
       })
       .catch(() => {
         resultEl.innerHTML = `<div style="background:#ffebee;padding:12px;border-radius:6px;color:#c62828;">❌ Gagal memproses scan</div>`;
+        showToast('Gagal memproses scan', 'error');
       });
   }
   
@@ -757,7 +797,7 @@
     const statusEl = document.getElementById('izin-status');
     statusEl.innerHTML = '<div class="loading">Menyimpan...</div>';
     
-    callApi('inputIzin', { data })
+    jsonp('inputIzin', { data: JSON.stringify(data) })
       .then(result => {
         statusEl.innerHTML = `<div style="background:#e8f5e9;padding:10px;border-radius:6px;color:#2e7d32;font-weight:600;">✅ ${result.message}</div>`;
         showToast('✅ ' + result.message, 'success');
@@ -768,6 +808,7 @@
       })
       .catch(() => {
         statusEl.innerHTML = `<div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;">❌ Gagal menyimpan</div>`;
+        showToast('Gagal menyimpan data', 'error');
       });
   }
   
@@ -802,7 +843,7 @@
     const hasil = document.getElementById('rekap-hasil');
     hasil.innerHTML = '<div class="loading">Memuat data...</div>';
     
-    callApi('getRekap', { role, tglMulai, tglSelesai })
+    jsonp('getRekap', { role, tglMulai, tglSelesai })
       .then(data => {
         let html = `
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:4px;margin-bottom:12px;">
@@ -824,6 +865,7 @@
       })
       .catch(() => {
         hasil.innerHTML = '<p style="color:red;">❌ Gagal memuat data</p>';
+        showToast('Gagal memuat rekap', 'error');
       });
   }
   
@@ -834,7 +876,7 @@
     
     showToast('⏳ Memproses...', 'info');
     
-    callApi('exportData', { role, tglMulai, tglSelesai, format })
+    jsonp('exportData', { role, tglMulai, tglSelesai, format })
       .then(result => {
         if (result.success) {
           const blob = new Blob([result.data], { type: result.type });
@@ -861,7 +903,7 @@
       </div>
     `;
     
-    callApi('getPengaturan')
+    jsonp('getPengaturan')
       .then(data => {
         let html = `
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -899,6 +941,7 @@
       })
       .catch(() => {
         document.getElementById('pengaturan-content').innerHTML = '<p style="color:red;">❌ Gagal memuat pengaturan</p>';
+        showToast('Gagal memuat pengaturan', 'error');
       });
   }
   
@@ -907,11 +950,11 @@
     const pinAdmin = document.getElementById('set-pin-admin').value.trim();
     if (!pinGuru || !pinAdmin) { showToast('PIN tidak boleh kosong!', 'error'); return; }
     
-    callApi('updatePengaturan', { key: 'PIN_GURU', value: pinGuru })
+    jsonp('updatePengaturan', { key: 'PIN_GURU', value: pinGuru })
       .then(() => { showToast('✅ PIN Guru diupdate', 'success'); })
       .catch(() => { showToast('❌ Gagal update PIN Guru', 'error'); });
     
-    callApi('updatePengaturan', { key: 'PIN_ADMIN', value: pinAdmin })
+    jsonp('updatePengaturan', { key: 'PIN_ADMIN', value: pinAdmin })
       .then(() => { showToast('✅ PIN Admin diupdate', 'success'); })
       .catch(() => { showToast('❌ Gagal update PIN Admin', 'error'); });
   }
@@ -921,7 +964,7 @@
     const ket = document.getElementById('libur-keterangan').value.trim() || 'Libur';
     if (!tgl) { showToast('Pilih tanggal!', 'error'); return; }
     
-    callApi('updatePengaturan', { key: 'LIBUR_' + tgl, value: ket })
+    jsonp('updatePengaturan', { key: 'LIBUR_' + tgl, value: ket })
       .then(() => {
         showToast('✅ Hari libur ditambahkan', 'success');
         document.getElementById('libur-tanggal').value = '';
@@ -935,7 +978,7 @@
   
   function removeLibur(key) {
     if (!confirm('Hapus hari libur ini?')) return;
-    callApi('updatePengaturan', { key: key, value: '' })
+    jsonp('updatePengaturan', { key: key, value: '' })
       .then(() => {
         showToast('✅ Dihapus', 'success');
         loadPengaturan();
