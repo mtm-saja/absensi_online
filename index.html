@@ -78,6 +78,9 @@
       margin-top: 56px;
       padding: 16px;
       min-height: calc(100vh - 100px);
+      overflow-y: auto !important;
+      height: auto !important;
+      max-height: none !important;
     }
     
     .footer {
@@ -149,10 +152,32 @@
     .session-card.active .sesi-status { color: #2e7d32; }
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
     
-    .rekap-table-wrap { overflow-x: auto; max-height: 300px; overflow-y: auto; }
-    .rekap-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .rekap-table th { background: #0d47a1; color: white; padding: 6px 8px; text-align: center; white-space: nowrap; position: sticky; top: 0; z-index: 10; }
-    .rekap-table td { padding: 5px 8px; border-bottom: 1px solid #eee; text-align: center; }
+    .rekap-table-wrap {
+    overflow-x: auto;
+    overflow-y: visible;
+    max-height: none !important;
+    }
+    .rekap-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .rekap-table th {
+      background: #0d47a1;
+      color: white;
+      padding: 6px 8px;
+      text-align: center;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .rekap-table td {
+      padding: 5px 8px;
+      border-bottom: 1px solid #eee;
+      text-align: center;
+    }
+  
     .rekap-table tr:hover { background: #f5f5f5; }
     .status-badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
     .status-hadir { background: #c8e6c9; color: #2e7d32; }
@@ -185,11 +210,27 @@
     .toast-error { background: #c62828; }
     .toast-info { background: #0d47a1; }
     .toast-warning { background: #f57f17; }
-    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    
-    .loading { text-align: center; padding: 15px; color: #666; font-size: 13px; }
-    .loading::after { content: '...'; animation: dots 1.5s steps(4) infinite; }
-    @keyframes dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .loading {
+      text-align: center;
+      padding: 15px;
+      color: #666;
+      font-size: 13px;
+    }
+    .loading::after {
+      content: '...';
+      animation: dots 1.5s steps(4) infinite;
+    }
+    @keyframes dots {
+      0% { content: ''; }
+      25% { content: '.'; }
+      50% { content: '..'; }
+      75% { content: '...'; }
+    }
     
     .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
     .text-center { text-align: center; }
@@ -242,140 +283,14 @@
     }
 
 
-    /* ===== TAMBAHKAN INI DI BAGIAN CSS ===== */
-/* Fix scrolling - biar halaman bisa di-scroll */
-.main-content {
-  margin-left: 250px;
-  margin-top: 56px;
-  padding: 16px;
-  min-height: calc(100vh - 100px);
-  overflow-y: auto !important;
-  height: auto !important;
-  max-height: none !important;
-}
-
-/* Hilangkan loading dots yang berlebihan */
-.loading {
-  text-align: center;
-  padding: 15px;
-  color: #666;
-  font-size: 13px;
-}
-.loading::after {
-  content: '...';
-  animation: dots 1.5s steps(4) infinite;
-}
-@keyframes dots {
-  0% { content: ''; }
-  25% { content: '.'; }
-  50% { content: '..'; }
-  75% { content: '...'; }
-}
-
-/* Fix tabel biar tidak bikin scroll aneh */
-.rekap-table-wrap {
-  overflow-x: auto;
-  overflow-y: visible;
-  max-height: none !important;
-}
-.rekap-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-.rekap-table th {
-  background: #0d47a1;
-  color: white;
-  padding: 6px 8px;
-  text-align: center;
-  white-space: nowrap;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-.rekap-table td {
-  padding: 5px 8px;
-  border-bottom: 1px solid #eee;
-  text-align: center;
-}
-.rekap-table tr:hover { background: #f5f5f5; }
-
-/* Fix form input izin */
-.izin-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-@media (max-width: 500px) {
-  .izin-grid { grid-template-columns: 1fr; }
-}
-
-/* Fix pengaturan */
-.setting-group {
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
-  background: #fafafa;
-}
-.setting-group h4 {
-  color: #1a237e;
-  margin-bottom: 8px;
-  font-size: 13px;
-}
-.setting-group .row {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  gap: 8px;
-  align-items: end;
-}
-@media (max-width: 600px) {
-  .setting-group .row {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-.setting-group .row .form-group { margin-bottom: 0; }
-.checkbox-group {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  margin: 8px 0;
-}
-.checkbox-group label {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  cursor: pointer;
-}
-.checkbox-group input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-}
-
-/* Toast lebih baik */
-.toast {
-  position: fixed;
-  top: 65px;
-  right: 12px;
-  padding: 10px 16px;
-  border-radius: 6px;
-  color: white;
-  z-index: 9999;
-  max-width: 90%;
-  font-size: 13px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-  animation: slideIn 0.4s ease;
-}
-.toast-success { background: #2e7d32; }
-.toast-error { background: #c62828; }
-.toast-info { background: #0d47a1; }
-.toast-warning { background: #f57f17; }
-@keyframes slideIn {
-  from { transform: translateX(100%); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
+    .izin-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    @media (max-width: 500px) {
+      .izin-grid { grid-template-columns: 1fr; }
+    }
 
   </style>
 </head>
@@ -427,7 +342,7 @@
 
 <script>
   // ==================== KONFIGURASI ====================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbxZEQNvsYnRJyLxFS4Y4avyczHwcBWLskgq6urefFCmyVst_Xb7THtezjYdCaMYZ5UVYQ/exec'; // Ganti dengan URL Web App Anda
+  const API_URL = 'https://script.google.com/macros/s/AKfycbxp944RCfX9zSz1mQbP_q6WL8y3mqh4qQ-38hTDOCPdxPNO5eVSJbDyZZcg5IZXEAJC9A/exec'; // Ganti dengan URL Web App Anda
   
   // ==================== GLOBAL ====================
   let currentUser = null;
@@ -898,7 +813,7 @@
     }
   }
   
-   function handleScanResult(barcodeData, role) {
+    function handleScanResult(barcodeData, role) {
     const resultEl = document.getElementById('scan-result');
     resultEl.innerHTML = '<div class="loading">⏳ Memproses...</div>';
     
@@ -971,7 +886,6 @@
       </div>
     `;
   }
-  
   
   function submitIzin(role) {
     const id = document.getElementById('izin-id').value.trim();
@@ -1226,7 +1140,7 @@
   }
   
   // ===== UPDATE SESI AKTIF =====
-  function updateActiveSesi() {
+    function updateActiveSesi() {
     const selected = [];
     if (document.getElementById('sesi-1').checked) selected.push('1');
     if (document.getElementById('sesi-2').checked) selected.push('2');
@@ -1303,32 +1217,6 @@
       .catch((err) => {
         showToast('❌ Gagal menyimpan: ' + (err.message || 'unknown'), 'error');
         console.error(err);
-      });
-  }
-    
-    // Simpan ke Google Sheets via API
-    jsonp('updateSesiScan', { sesiData: JSON.stringify(sesiData) })
-      .then(() => {
-        showToast('✅ Waktu sesi diupdate', 'success');
-        // Juga update di PENGATURAN sebagai backup
-        const sesiMap = {
-          1: sesiData.find(s => s.sesi === 'Sesi 1'),
-          2: sesiData.find(s => s.sesi === 'Sesi 2'),
-          3: sesiData.find(s => s.sesi === 'Sesi 3')
-        };
-        if (sesiMap[1]) {
-          jsonp('updatePengaturan', { key: 'SESI_1_JAM', value: `${sesiMap[1].mulai},${sesiMap[1].tepat},${sesiMap[1].terlambat}` });
-        }
-        if (sesiMap[2]) {
-          jsonp('updatePengaturan', { key: 'SESI_2_JAM', value: `${sesiMap[2].mulai},${sesiMap[2].tepat},${sesiMap[2].terlambat}` });
-        }
-        if (sesiMap[3]) {
-          jsonp('updatePengaturan', { key: 'SESI_3_JAM', value: `${sesiMap[3].mulai},${sesiMap[3].tepat},${sesiMap[3].terlambat}` });
-        }
-        loadPengaturan();
-      })
-      .catch(() => {
-        showToast('❌ Gagal update waktu sesi', 'error');
       });
   }
   
