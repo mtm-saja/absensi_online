@@ -240,6 +240,143 @@
       height: 16px;
       cursor: pointer;
     }
+
+
+    /* ===== TAMBAHKAN INI DI BAGIAN CSS ===== */
+/* Fix scrolling - biar halaman bisa di-scroll */
+.main-content {
+  margin-left: 250px;
+  margin-top: 56px;
+  padding: 16px;
+  min-height: calc(100vh - 100px);
+  overflow-y: auto !important;
+  height: auto !important;
+  max-height: none !important;
+}
+
+/* Hilangkan loading dots yang berlebihan */
+.loading {
+  text-align: center;
+  padding: 15px;
+  color: #666;
+  font-size: 13px;
+}
+.loading::after {
+  content: '...';
+  animation: dots 1.5s steps(4) infinite;
+}
+@keyframes dots {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+}
+
+/* Fix tabel biar tidak bikin scroll aneh */
+.rekap-table-wrap {
+  overflow-x: auto;
+  overflow-y: visible;
+  max-height: none !important;
+}
+.rekap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.rekap-table th {
+  background: #0d47a1;
+  color: white;
+  padding: 6px 8px;
+  text-align: center;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.rekap-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+}
+.rekap-table tr:hover { background: #f5f5f5; }
+
+/* Fix form input izin */
+.izin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+@media (max-width: 500px) {
+  .izin-grid { grid-template-columns: 1fr; }
+}
+
+/* Fix pengaturan */
+.setting-group {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+  background: #fafafa;
+}
+.setting-group h4 {
+  color: #1a237e;
+  margin-bottom: 8px;
+  font-size: 13px;
+}
+.setting-group .row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 8px;
+  align-items: end;
+}
+@media (max-width: 600px) {
+  .setting-group .row {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.setting-group .row .form-group { margin-bottom: 0; }
+.checkbox-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 8px 0;
+}
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.checkbox-group input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Toast lebih baik */
+.toast {
+  position: fixed;
+  top: 65px;
+  right: 12px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  color: white;
+  z-index: 9999;
+  max-width: 90%;
+  font-size: 13px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  animation: slideIn 0.4s ease;
+}
+.toast-success { background: #2e7d32; }
+.toast-error { background: #c62828; }
+.toast-info { background: #0d47a1; }
+.toast-warning { background: #f57f17; }
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
   </style>
 </head>
 <body>
@@ -290,7 +427,7 @@
 
 <script>
   // ==================== KONFIGURASI ====================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbznp0jtrq02vjd843aSnbn4RzylcmyAVe-bNYpagP-uIE5GHDvgSuXcMulKvH8MOY44eQ/exec'; // Ganti dengan URL Web App Anda
+  const API_URL = 'https://script.google.com/macros/s/AKfycbxZEQNvsYnRJyLxFS4Y4avyczHwcBWLskgq6urefFCmyVst_Xb7THtezjYdCaMYZ5UVYQ/exec'; // Ganti dengan URL Web App Anda
   
   // ==================== GLOBAL ====================
   let currentUser = null;
@@ -761,16 +898,16 @@
     }
   }
   
-  function handleScanResult(barcodeData, role) {
+   function handleScanResult(barcodeData, role) {
     const resultEl = document.getElementById('scan-result');
-    resultEl.innerHTML = '<div class="loading">Memproses...</div>';
+    resultEl.innerHTML = '<div class="loading">⏳ Memproses...</div>';
     
     jsonp('scanQR', { barcodeData, role })
       .then(result => {
         if (result.success) {
           resultEl.innerHTML = `
             <div style="background:#e8f5e9;padding:12px;border-radius:6px;border-left:4px solid #2e7d32;">
-              <h4 style="color:#2e7d32;">✅ ${result.message}</h4>
+              <h4 style="color:#2e7d32;">${result.message}</h4>
               <p style="margin:3px 0;font-size:13px;">👤 ${result.data.nama}</p>
               <p style="margin:3px 0;font-size:13px;">📌 ${result.data.status} | ⏰ ${result.data.sesi}</p>
             </div>
@@ -779,16 +916,16 @@
         } else {
           resultEl.innerHTML = `
             <div style="background:#ffebee;padding:12px;border-radius:6px;border-left:4px solid #c62828;">
-              <h4 style="color:#c62828;">❌ ${result.message}</h4>
+              <h4 style="color:#c62828;">${result.message}</h4>
             </div>
           `;
           showToast('❌ ' + result.message, 'error');
         }
         document.getElementById('scan-status').textContent = '📷 Siap scan lagi';
       })
-      .catch(() => {
-        resultEl.innerHTML = `<div style="background:#ffebee;padding:12px;border-radius:6px;color:#c62828;">❌ Gagal memproses scan</div>`;
-        showToast('Gagal memproses scan', 'error');
+      .catch((err) => {
+        resultEl.innerHTML = `<div style="background:#ffebee;padding:12px;border-radius:6px;color:#c62828;">❌ Gagal memproses scan: ${err.message || 'unknown'}</div>`;
+        showToast('❌ Gagal memproses scan', 'error');
       });
   }
   
@@ -835,6 +972,7 @@
     `;
   }
   
+  
   function submitIzin(role) {
     const id = document.getElementById('izin-id').value.trim();
     const nama = document.getElementById('izin-nama').value.trim();
@@ -842,13 +980,13 @@
     const jenis = document.getElementById('izin-jenis').value;
     const keterangan = document.getElementById('izin-keterangan').value.trim() || '-';
     
-    // Minimal salah satu diisi
+    // Validasi: Minimal salah satu diisi
     if (!id && !nama) {
-      showToast('Isi NISN/NIP atau Nama!', 'error');
+      showToast('❌ Isi NISN/NIP atau Nama!', 'error');
       return;
     }
     if (!tanggal) {
-      showToast('Pilih tanggal!', 'error');
+      showToast('❌ Pilih tanggal!', 'error');
       return;
     }
     
@@ -862,19 +1000,24 @@
     };
     
     const statusEl = document.getElementById('izin-status');
-    statusEl.innerHTML = '<div class="loading">Menyimpan...</div>';
+    statusEl.innerHTML = '<div class="loading">⏳ Menyimpan...</div>';
     
     jsonp('inputIzin', { data: JSON.stringify(data) })
       .then(result => {
-        statusEl.innerHTML = `<div style="background:#e8f5e9;padding:10px;border-radius:6px;color:#2e7d32;font-weight:600;">✅ ${result.message}</div>`;
-        showToast('✅ ' + result.message, 'success');
-        document.getElementById('izin-id').value = '';
-        document.getElementById('izin-nama').value = '';
-        document.getElementById('izin-keterangan').value = '';
+        if (result.success) {
+          statusEl.innerHTML = `<div style="background:#e8f5e9;padding:10px;border-radius:6px;color:#2e7d32;font-weight:600;">✅ ${result.message}</div>`;
+          showToast('✅ ' + result.message, 'success');
+          document.getElementById('izin-id').value = '';
+          document.getElementById('izin-nama').value = '';
+          document.getElementById('izin-keterangan').value = '';
+        } else {
+          statusEl.innerHTML = `<div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;font-weight:600;">❌ ${result.message}</div>`;
+          showToast('❌ ' + result.message, 'error');
+        }
       })
-      .catch(() => {
-        statusEl.innerHTML = `<div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;">❌ Gagal menyimpan</div>`;
-        showToast('Gagal menyimpan data', 'error');
+      .catch((err) => {
+        statusEl.innerHTML = `<div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;">❌ Gagal menyimpan: ${err.message || 'unknown'}</div>`;
+        showToast('❌ Gagal menyimpan data', 'error');
       });
   }
   
@@ -1090,18 +1233,21 @@
     if (document.getElementById('sesi-3').checked) selected.push('3');
     
     if (selected.length === 0) {
-      showToast('Pilih minimal 1 sesi!', 'error');
+      showToast('❌ Pilih minimal 1 sesi!', 'error');
       return;
     }
     
     const value = selected.join(',');
+    showToast('⏳ Menyimpan...', 'info');
+    
     jsonp('updatePengaturan', { key: 'ACTIVE_SESI', value: value })
       .then(() => {
-        showToast('✅ Sesi aktif diupdate', 'success');
+        showToast('✅ Sesi aktif berhasil diupdate!', 'success');
         loadPengaturan(); // Refresh
       })
-      .catch(() => {
-        showToast('❌ Gagal update sesi aktif', 'error');
+      .catch((err) => {
+        showToast('❌ Gagal update: ' + (err.message || 'unknown'), 'error');
+        console.error(err);
       });
   }
   
@@ -1123,9 +1269,42 @@
     }
     
     if (sesiData.length === 0) {
-      showToast('Data sesi tidak lengkap!', 'error');
+      showToast('❌ Data sesi tidak lengkap!', 'error');
       return;
     }
+    
+    showToast('⏳ Menyimpan data...', 'info');
+    
+    // Simpan ke Google Sheets via API
+    jsonp('updateSesiScan', { sesiData: JSON.stringify(sesiData) })
+      .then(() => {
+        showToast('✅ Waktu sesi berhasil disimpan!', 'success');
+        // Juga update di PENGATURAN sebagai backup
+        const sesiMap = {
+          1: sesiData.find(s => s.sesi === 'Sesi 1'),
+          2: sesiData.find(s => s.sesi === 'Sesi 2'),
+          3: sesiData.find(s => s.sesi === 'Sesi 3')
+        };
+        const promises = [];
+        if (sesiMap[1]) {
+          promises.push(jsonp('updatePengaturan', { key: 'SESI_1_JAM', value: `${sesiMap[1].mulai},${sesiMap[1].tepat},${sesiMap[1].terlambat}` }));
+        }
+        if (sesiMap[2]) {
+          promises.push(jsonp('updatePengaturan', { key: 'SESI_2_JAM', value: `${sesiMap[2].mulai},${sesiMap[2].tepat},${sesiMap[2].terlambat}` }));
+        }
+        if (sesiMap[3]) {
+          promises.push(jsonp('updatePengaturan', { key: 'SESI_3_JAM', value: `${sesiMap[3].mulai},${sesiMap[3].tepat},${sesiMap[3].terlambat}` }));
+        }
+        return Promise.all(promises);
+      })
+      .then(() => {
+        loadPengaturan(); // Refresh halaman
+      })
+      .catch((err) => {
+        showToast('❌ Gagal menyimpan: ' + (err.message || 'unknown'), 'error');
+        console.error(err);
+      });
+  }
     
     // Simpan ke Google Sheets via API
     jsonp('updateSesiScan', { sesiData: JSON.stringify(sesiData) })
