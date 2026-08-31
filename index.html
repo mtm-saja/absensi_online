@@ -6,19 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>SMP NEGERI 1 SOBANG - Absensi Online</title>
   
-  <!-- QR Scanner Library dari CDN -->
+  <!-- QR Scanner Library -->
   <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
   
   <style>
-    /* ===== RESET & BASE ===== */
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-      background: #f0f2f5; 
-      overflow-x: hidden;
-    }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; overflow-x: hidden; }
     
-    /* ===== TOPBAR ===== */
     .topbar {
       background: linear-gradient(135deg, #1a237e, #0d47a1);
       color: white;
@@ -35,22 +29,10 @@
       min-height: 56px;
     }
     .topbar h1 { font-size: 16px; font-weight: 600; }
-    .topbar .clock { 
-      background: rgba(255,255,255,0.2); 
-      padding: 4px 12px; 
-      border-radius: 20px; 
-      font-size: 13px;
-    }
-    .topbar .user-badge {
-      background: rgba(255,255,255,0.2);
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      display: none;
-    }
+    .topbar .clock { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 13px; }
+    .topbar .user-badge { background: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 20px; font-size: 12px; display: none; }
     .topbar .user-badge.show { display: inline-block; }
     
-    /* ===== SIDEBAR ===== */
     .sidebar {
       position: fixed;
       top: 56px;
@@ -76,18 +58,12 @@
       text-decoration: none;
       font-size: 13px;
     }
-    .sidebar .menu-item:hover {
-      background: #e3f2fd;
-      color: #0d47a1;
-    }
-    .sidebar .menu-item.active {
-      background: #0d47a1;
-      color: white;
-    }
+    .sidebar .menu-item:hover { background: #e3f2fd; color: #0d47a1; }
+    .sidebar .menu-item.active { background: #0d47a1; color: white; }
     .sidebar .menu-item .icon { font-size: 16px; width: 24px; text-align: center; }
-    .sidebar .menu-group { 
-      padding: 8px 18px; 
-      font-weight: 700; 
+    .sidebar .menu-group {
+      padding: 8px 18px;
+      font-weight: 700;
       font-size: 11px;
       color: #0d47a1;
       background: #f5f5f5;
@@ -97,7 +73,6 @@
     }
     .sidebar .menu-item.hidden { display: none !important; }
     
-    /* ===== MAIN CONTENT ===== */
     .main-content {
       margin-left: 250px;
       margin-top: 56px;
@@ -105,7 +80,6 @@
       min-height: calc(100vh - 100px);
     }
     
-    /* ===== FOOTER ===== */
     .footer {
       margin-left: 250px;
       background: #1a237e;
@@ -120,7 +94,6 @@
       z-index: 1000;
     }
     
-    /* ===== RESPONSIVE ===== */
     @media (max-width: 768px) {
       .sidebar { transform: translateX(-100%); width: 280px; }
       .sidebar.open { transform: translateX(0); }
@@ -128,33 +101,10 @@
       .topbar h1 { font-size: 13px; }
       .hamburger { display: block !important; }
     }
-    .hamburger { 
-      display: none; 
-      background: none; 
-      border: none; 
-      color: white; 
-      font-size: 22px; 
-      cursor: pointer; 
-      padding: 5px;
-    }
+    .hamburger { display: none; background: none; border: none; color: white; font-size: 22px; cursor: pointer; padding: 5px; }
     
-    /* ===== COMPONENTS ===== */
-    .card {
-      background: white;
-      border-radius: 10px;
-      padding: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      margin-bottom: 16px;
-    }
-    .card-title { 
-      font-size: 15px; 
-      font-weight: 600; 
-      color: #1a237e; 
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+    .card { background: white; border-radius: 10px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-bottom: 16px; }
+    .card-title { font-size: 15px; font-weight: 600; color: #1a237e; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
     
     .btn {
       padding: 7px 14px;
@@ -175,130 +125,36 @@
     .btn-block { width: 100%; }
     
     .form-group { margin-bottom: 10px; }
-    .form-group label { 
-      display: block; 
-      font-weight: 600; 
-      margin-bottom: 3px; 
-      color: #333; 
-      font-size: 12px;
-    }
-    .form-group input, .form-group select { 
-      width: 100%; 
-      padding: 7px 10px; 
-      border: 1px solid #ddd; 
-      border-radius: 6px; 
-      font-size: 13px;
-    }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 3px; color: #333; font-size: 12px; }
+    .form-group input, .form-group select { width: 100%; padding: 7px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
     
-    /* ===== DASHBOARD STATS ===== */
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-    @media (max-width: 600px) {
-      .dashboard-grid { grid-template-columns: 1fr; }
-    }
-    .stat-section {
-      background: #f8f9fa;
-      border-radius: 8px;
-      padding: 12px;
-      border: 1px solid #e9ecef;
-    }
-    .stat-section h4 {
-      font-size: 13px;
-      color: #1a237e;
-      margin-bottom: 8px;
-      text-align: center;
-      border-bottom: 2px solid #0d47a1;
-      padding-bottom: 6px;
-    }
-    .stat-mini-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 4px;
-    }
-    .stat-mini {
-      background: white;
-      padding: 5px 3px;
-      border-radius: 5px;
-      text-align: center;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    }
-    .stat-mini .number { 
-      font-size: 16px; 
-      font-weight: 700; 
-      color: #0d47a1; 
-      display: block;
-      line-height: 1.2;
-    }
-    .stat-mini .label { 
-      font-size: 9px; 
-      color: #666; 
-      display: block;
-      text-transform: uppercase;
-      letter-spacing: 0.3px;
-    }
+    .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 600px) { .dashboard-grid { grid-template-columns: 1fr; } }
+    .stat-section { background: #f8f9fa; border-radius: 8px; padding: 12px; border: 1px solid #e9ecef; }
+    .stat-section h4 { font-size: 13px; color: #1a237e; margin-bottom: 8px; text-align: center; border-bottom: 2px solid #0d47a1; padding-bottom: 6px; }
+    .stat-mini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+    .stat-mini { background: white; padding: 5px 3px; border-radius: 5px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .stat-mini .number { font-size: 16px; font-weight: 700; color: #0d47a1; display: block; line-height: 1.2; }
+    .stat-mini .label { font-size: 9px; color: #666; display: block; text-transform: uppercase; letter-spacing: 0.3px; }
     .stat-mini.danger .number { color: #c62828; }
     .stat-mini.warning .number { color: #f57f17; }
     .stat-mini.success .number { color: #2e7d32; }
     
-    /* ===== SESSION INFO ===== */
-    .session-info {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-      gap: 8px;
-    }
-    .session-card {
-      background: #e3f2fd;
-      padding: 10px;
-      border-radius: 6px;
-      text-align: center;
-      border-left: 3px solid #0d47a1;
-    }
-    .session-card.active {
-      background: #c8e6c9;
-      border-left-color: #2e7d32;
-      animation: pulse 2s infinite;
-    }
+    .session-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+    .session-card { background: #e3f2fd; padding: 10px; border-radius: 6px; text-align: center; border-left: 3px solid #0d47a1; }
+    .session-card.active { background: #c8e6c9; border-left-color: #2e7d32; animation: pulse 2s infinite; }
     .session-card .sesi-name { font-weight: 700; font-size: 12px; color: #1a237e; }
     .session-card .sesi-time { font-size: 10px; color: #555; }
     .session-card .sesi-status { font-size: 10px; font-weight: 600; }
     .session-card.active .sesi-status { color: #2e7d32; }
+    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
     
-    @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.02); }
-      100% { transform: scale(1); }
-    }
-    
-    /* ===== REKAP HARI INI ===== */
     .rekap-table-wrap { overflow-x: auto; }
-    .rekap-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 12px;
-    }
-    .rekap-table th {
-      background: #0d47a1;
-      color: white;
-      padding: 6px 8px;
-      text-align: center;
-      white-space: nowrap;
-    }
-    .rekap-table td {
-      padding: 5px 8px;
-      border-bottom: 1px solid #eee;
-      text-align: center;
-    }
+    .rekap-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .rekap-table th { background: #0d47a1; color: white; padding: 6px 8px; text-align: center; white-space: nowrap; }
+    .rekap-table td { padding: 5px 8px; border-bottom: 1px solid #eee; text-align: center; }
     .rekap-table tr:hover { background: #f5f5f5; }
-    .rekap-table .status-badge {
-      display: inline-block;
-      padding: 1px 8px;
-      border-radius: 10px;
-      font-size: 10px;
-      font-weight: 600;
-    }
+    .status-badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
     .status-hadir { background: #c8e6c9; color: #2e7d32; }
     .status-terlambat { background: #fff3e0; color: #f57f17; }
     .status-izin { background: #e3f2fd; color: #0d47a1; }
@@ -307,42 +163,11 @@
     .status-bolos { background: #f44336; color: white; }
     .status-absent { background: #f5f5f5; color: #999; }
     
-    /* ===== SCANNER ===== */
-    #scanner-container {
-      width: 100%;
-      max-width: 400px;
-      margin: 0 auto;
-      border-radius: 10px;
-      overflow: hidden;
-      background: #000;
-      position: relative;
-    }
-    #reader {
-      width: 100%;
-      min-height: 300px;
-      background: #000;
-    }
-    #scanner-overlay {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 60%;
-      height: 60%;
-      border: 2px solid rgba(255,255,255,0.4);
-      border-radius: 8px;
-      pointer-events: none;
-      box-shadow: 0 0 0 9999px rgba(0,0,0,0.3);
-    }
-    .scanner-controls {
-      display: flex;
-      gap: 8px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-top: 8px;
-    }
+    #scanner-container { width: 100%; max-width: 400px; margin: 0 auto; border-radius: 10px; overflow: hidden; background: #000; position: relative; }
+    #reader { width: 100%; min-height: 280px; background: #000; }
+    #scanner-overlay { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60%; height: 60%; border: 2px solid rgba(255,255,255,0.4); border-radius: 8px; pointer-events: none; box-shadow: 0 0 0 9999px rgba(0,0,0,0.3); }
+    .scanner-controls { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 8px; }
     
-    /* ===== TOAST ===== */
     .toast {
       position: fixed;
       top: 65px;
@@ -360,37 +185,13 @@
     .toast-error { background: #c62828; }
     .toast-info { background: #0d47a1; }
     .toast-warning { background: #f57f17; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     
-    @keyframes slideIn {
-      from { transform: translateX(100%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
-    }
+    .loading { text-align: center; padding: 15px; color: #666; font-size: 13px; }
+    .loading::after { content: '...'; animation: dots 1.5s steps(4) infinite; }
+    @keyframes dots { 0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; } }
     
-    /* ===== LOADING ===== */
-    .loading {
-      text-align: center;
-      padding: 15px;
-      color: #666;
-      font-size: 13px;
-    }
-    .loading::after {
-      content: '...';
-      animation: dots 1.5s steps(4) infinite;
-    }
-    @keyframes dots {
-      0% { content: ''; }
-      25% { content: '.'; }
-      50% { content: '..'; }
-      75% { content: '...'; }
-    }
-    
-    .badge {
-      display: inline-block;
-      padding: 2px 10px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 600;
-    }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
     .text-center { text-align: center; }
     .mt-10 { margin-top: 10px; }
     .mb-10 { margin-bottom: 10px; }
@@ -400,7 +201,7 @@
 </head>
 <body>
 
-<!-- ===== TOPBAR ===== -->
+<!-- TOPBAR -->
 <div class="topbar">
   <div style="display:flex;align-items:center;gap:10px;">
     <button class="hamburger" onclick="toggleSidebar()">☰</button>
@@ -412,63 +213,42 @@
   </div>
 </div>
 
-<!-- ===== SIDEBAR ===== -->
+<!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
   <div class="menu-group">📋 NAVIGASI</div>
-  <a class="menu-item active" onclick="loadPage('dashboard')">
-    <span class="icon">📊</span> Dashboard
-  </a>
+  <a class="menu-item active" onclick="loadPage('dashboard')"><span class="icon">📊</span> Dashboard</a>
   
   <div class="menu-group">👨‍👩‍👧 ORANG TUA</div>
-  <a class="menu-item" onclick="loadPage('ortu')">
-    <span class="icon">🔍</span> Cek Absensi Siswa
-  </a>
+  <a class="menu-item" onclick="loadPage('ortu')"><span class="icon">🔍</span> Cek Absensi Siswa</a>
   
   <div class="menu-group guru-menu hidden">👨‍🏫 GURU</div>
-  <a class="menu-item guru-menu hidden" onclick="loadPage('guru-scan')">
-    <span class="icon">📷</span> QR Barcode Siswa
-  </a>
-  <a class="menu-item guru-menu hidden" onclick="loadPage('guru-izin')">
-    <span class="icon">📝</span> Input Izin/Sakit Siswa
-  </a>
-  <a class="menu-item guru-menu hidden" onclick="loadPage('guru-rekap')">
-    <span class="icon">📈</span> Rekap Absensi Siswa
-  </a>
+  <a class="menu-item guru-menu hidden" onclick="loadPage('guru-scan')"><span class="icon">📷</span> QR Barcode Siswa</a>
+  <a class="menu-item guru-menu hidden" onclick="loadPage('guru-izin')"><span class="icon">📝</span> Input Izin/Sakit Siswa</a>
+  <a class="menu-item guru-menu hidden" onclick="loadPage('guru-rekap')"><span class="icon">📈</span> Rekap Absensi Siswa</a>
   
   <div class="menu-group admin-menu hidden">👨‍💼 ADMIN</div>
-  <a class="menu-item admin-menu hidden" onclick="loadPage('admin-scan')">
-    <span class="icon">📷</span> QR Barcode
-  </a>
-  <a class="menu-item admin-menu hidden" onclick="loadPage('admin-izin')">
-    <span class="icon">📝</span> Input Izin/Sakit
-  </a>
-  <a class="menu-item admin-menu hidden" onclick="loadPage('admin-rekap')">
-    <span class="icon">📈</span> Rekap Absensi
-  </a>
-  <a class="menu-item admin-menu hidden" onclick="loadPage('admin-pengaturan')">
-    <span class="icon">⚙️</span> Pengaturan
-  </a>
+  <a class="menu-item admin-menu hidden" onclick="loadPage('admin-scan')"><span class="icon">📷</span> QR Barcode</a>
+  <a class="menu-item admin-menu hidden" onclick="loadPage('admin-izin')"><span class="icon">📝</span> Input Izin/Sakit</a>
+  <a class="menu-item admin-menu hidden" onclick="loadPage('admin-rekap')"><span class="icon">📈</span> Rekap Absensi</a>
+  <a class="menu-item admin-menu hidden" onclick="loadPage('admin-pengaturan')"><span class="icon">⚙️</span> Pengaturan</a>
   
   <div class="menu-group">🔐 AKUN</div>
-  <a class="menu-item" id="menu-login" onclick="loadPage('login')">
-    <span class="icon">🔑</span> Login
-  </a>
-  <a class="menu-item hidden" id="menu-logout" onclick="doLogout()">
-    <span class="icon">🚪</span> Logout
-  </a>
+  <a class="menu-item" id="menu-login" onclick="loadPage('login')"><span class="icon">🔑</span> Login</a>
+  <a class="menu-item hidden" id="menu-logout" onclick="doLogout()"><span class="icon">🚪</span> Logout</a>
 </div>
 
-<!-- ===== MAIN CONTENT ===== -->
+<!-- MAIN CONTENT -->
 <div class="main-content" id="main-content">
   <div class="loading">Memuat dashboard</div>
 </div>
 
-<!-- ===== FOOTER ===== -->
-<div class="footer">
-  © 2026 SMP NEGERI 1 SOBANG | Absensi Online v2.2
-</div>
+<!-- FOOTER -->
+<div class="footer">© 2026 SMP NEGERI 1 SOBANG | Absensi Online v2.2</div>
 
 <script>
+  // ==================== KONFIGURASI ====================
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwmC8ZKu0bW2A3BLk1DlptwhJcLrc6gIrQ4oRL5Zch1Gatb_pa33VzN0bkPxebAqoHiAg/exec'; // Ganti dengan URL Web App Anda
+  
   // ==================== GLOBAL ====================
   let currentUser = null;
   let currentPage = 'dashboard';
@@ -515,6 +295,20 @@
     toast.textContent = message;
     document.body.appendChild(toast);
     setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3500);
+  }
+  
+  // ==================== API HELPER ====================
+  function callApi(action, data = {}) {
+    return fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action, ...data })
+    })
+    .then(response => response.json())
+    .catch(err => {
+      showToast('Gagal terhubung ke server: ' + err.message, 'error');
+      throw err;
+    });
   }
   
   // ==================== PAGE LOADER ====================
@@ -571,8 +365,8 @@
     const pin = document.getElementById('login-pin').value.trim();
     if (!pin) { showToast('Masukkan PIN!', 'error'); return; }
     
-    google.script.run
-      .withSuccessHandler(function(result) {
+    callApi('verifyLogin', { role: 'all', pin: pin })
+      .then(result => {
         if (result.success) {
           currentUser = { role: result.role, pin: pin, nama: result.nama || '' };
           updateMenuVisibility();
@@ -588,10 +382,7 @@
           document.getElementById('login-pin').focus();
         }
       })
-      .withFailureHandler(function(err) {
-        showToast('Error: ' + err.message, 'error');
-      })
-      .verifyLogin('all', pin);
+      .catch(err => { showToast('Error: ' + err.message, 'error'); });
   }
   
   function doLogout() {
@@ -619,9 +410,8 @@
       </div>
     `;
     
-    // Load stats
-    google.script.run
-      .withSuccessHandler(function(data) {
+    callApi('getDashboardStats')
+      .then(data => {
         let html = `
           <div class="dashboard-grid">
             <div class="stat-section">
@@ -650,14 +440,12 @@
         `;
         document.getElementById('dashboard-stats').innerHTML = html;
       })
-      .withFailureHandler(function() {
-        document.getElementById('dashboard-stats').innerHTML = '<p style="color:red;">❌ Error loading stats</p>';
-      })
-      .getDashboardStats();
+      .catch(() => {
+        document.getElementById('dashboard-stats').innerHTML = '<p style="color:red;">❌ Gagal memuat statistik</p>';
+      });
     
-    // Load session info
-    google.script.run
-      .withSuccessHandler(function(data) {
+    callApi('getWaktuOperasional')
+      .then(data => {
         const now = new Date();
         const jam = now.toTimeString().slice(0,5);
         const hari = now.toLocaleDateString('id-ID', { weekday: 'long' });
@@ -691,69 +479,50 @@
         html += '</div>';
         document.getElementById('session-info').innerHTML = html;
       })
-      .withFailureHandler(function() {
-        document.getElementById('session-info').innerHTML = '<p style="color:red;">❌ Error loading session</p>';
-      })
-      .getWaktuOperasional();
+      .catch(() => {
+        document.getElementById('session-info').innerHTML = '<p style="color:red;">❌ Gagal memuat jadwal</p>';
+      });
     
-    // Load rekap hari ini (fitur baru)
-    loadRekapHariIni();
-  }
-  
-  // ==================== REKAP HARI INI (FITUR BARU) ====================
-  function loadRekapHariIni() {
-    const container = document.getElementById('rekap-hari-ini');
-    container.innerHTML = '<div class="loading">Memuat rekap hari ini...</div>';
-    
-    // Ambil data dari Google Sheets
-    google.script.run
-      .withSuccessHandler(function(data) {
+    // Load rekap hari ini
+    callApi('getRekapHariIni')
+      .then(data => {
+        const container = document.getElementById('rekap-hari-ini');
         let html = '';
         
-        // ===== REKAP GURU =====
         html += `<h4 style="margin:10px 0 8px;color:#0d47a1;">👨‍🏫 Rekap Guru Hari Ini</h4>`;
         html += `<div class="rekap-table-wrap"><table class="rekap-table">
           <tr><th>No</th><th>Nama</th><th>Sesi 1</th><th>Sesi 2</th><th>Sesi 3</th></tr>`;
         if (data.guru && data.guru.length > 0) {
           data.guru.forEach((row, i) => {
-            html += `<tr>
-              <td>${i+1}</td>
-              <td style="text-align:left;">${row.nama}</td>
+            html += `<tr><td>${i+1}</td><td style="text-align:left;">${row.nama}</td>
               <td>${renderStatus(row.sesi1)}</td>
-              <td>${row.sesi2 ? renderStatus(row.sesi2) : '<span class="status-badge status-absent">-</span>'}</td>
-              <td>${row.sesi3 ? renderStatus(row.sesi3) : '<span class="status-badge status-absent">-</span>'}</td>
-            </tr>`;
+              <td>${renderStatus(row.sesi2)}</td>
+              <td>${renderStatus(row.sesi3)}</td></tr>`;
           });
         } else {
           html += `<tr><td colspan="5" style="text-align:center;color:#999;">Belum ada data</td></tr>`;
         }
         html += '</table></div>';
         
-        // ===== REKAP SISWA =====
         html += `<h4 style="margin:15px 0 8px;color:#0d47a1;">👨‍🎓 Rekap Siswa Hari Ini</h4>`;
         html += `<div class="rekap-table-wrap"><table class="rekap-table">
           <tr><th>No</th><th>Nama</th><th>Sesi 1</th><th>Sesi 2</th><th>Sesi 3</th></tr>`;
         if (data.siswa && data.siswa.length > 0) {
           data.siswa.forEach((row, i) => {
-            html += `<tr>
-              <td>${i+1}</td>
-              <td style="text-align:left;">${row.nama}</td>
+            html += `<tr><td>${i+1}</td><td style="text-align:left;">${row.nama}</td>
               <td>${renderStatus(row.sesi1)}</td>
-              <td>${row.sesi2 ? renderStatus(row.sesi2) : '<span class="status-badge status-absent">-</span>'}</td>
-              <td>${row.sesi3 ? renderStatus(row.sesi3) : '<span class="status-badge status-absent">-</span>'}</td>
-            </tr>`;
+              <td>${renderStatus(row.sesi2)}</td>
+              <td>${renderStatus(row.sesi3)}</td></tr>`;
           });
         } else {
           html += `<tr><td colspan="5" style="text-align:center;color:#999;">Belum ada data</td></tr>`;
         }
         html += '</table></div>';
-        
         container.innerHTML = html;
       })
-      .withFailureHandler(function(err) {
-        container.innerHTML = `<p style="color:red;">❌ Error: ${err.message}</p>`;
-      })
-      .getRekapHariIni();
+      .catch(() => {
+        document.getElementById('rekap-hari-ini').innerHTML = '<p style="color:red;">❌ Gagal memuat rekap</p>';
+      });
   }
   
   function renderStatus(status) {
@@ -809,8 +578,8 @@
     const hasil = document.getElementById('ortu-hasil');
     hasil.innerHTML = '<div class="loading">Mencari data...</div>';
     
-    google.script.run
-      .withSuccessHandler(function(data) {
+    callApi('cekAbsensiSiswa', { nisn, tglMulai, tglSelesai })
+      .then(data => {
         if (data.length === 0) {
           hasil.innerHTML = '<p style="color:orange;padding:10px;">⚠️ Tidak ada data untuk periode ini</p>';
           return;
@@ -827,10 +596,9 @@
         html += '</table></div>';
         hasil.innerHTML = html;
       })
-      .withFailureHandler(function(err) {
-        hasil.innerHTML = `<p style="color:red;">❌ Error: ${err.message}</p>`;
-      })
-      .cekAbsensiSiswa(nisn, tglMulai, tglSelesai);
+      .catch(() => {
+        hasil.innerHTML = '<p style="color:red;">❌ Gagal memuat data</p>';
+      });
   }
   
   // ==================== SCAN QR ====================
@@ -866,7 +634,6 @@
     const statusEl = document.getElementById('scan-status');
     statusEl.textContent = '📷 Memulai kamera... Mohon izinkan akses kamera';
     
-    // Cek apakah Html5Qrcode tersedia
     if (typeof Html5Qrcode === 'undefined') {
       statusEl.textContent = '❌ Library scanner belum dimuat. Coba refresh halaman.';
       showToast('Library scanner belum dimuat', 'error');
@@ -883,7 +650,7 @@
           statusEl.textContent = '✅ QR Code terdeteksi!';
           handleScanResult(decodedText, role);
         },
-        function() {} // error ignored
+        function() {}
       ).then(() => {
         statusEl.textContent = '📷 Kamera aktif. Arahkan ke QR Code';
         isScanning = true;
@@ -924,8 +691,8 @@
     const resultEl = document.getElementById('scan-result');
     resultEl.innerHTML = '<div class="loading">Memproses...</div>';
     
-    google.script.run
-      .withSuccessHandler(function(result) {
+    callApi('scanQR', { barcodeData, role })
+      .then(result => {
         if (result.success) {
           resultEl.innerHTML = `
             <div style="background:#e8f5e9;padding:12px;border-radius:6px;border-left:4px solid #2e7d32;">
@@ -945,11 +712,9 @@
         }
         document.getElementById('scan-status').textContent = '📷 Siap scan lagi';
       })
-      .withFailureHandler(function(err) {
-        resultEl.innerHTML = `<div style="background:#ffebee;padding:12px;border-radius:6px;color:#c62828;">❌ ${err.message}</div>`;
-        showToast('Error: ' + err.message, 'error');
-      })
-      .scanQR(barcodeData, role);
+      .catch(() => {
+        resultEl.innerHTML = `<div style="background:#ffebee;padding:12px;border-radius:6px;color:#c62828;">❌ Gagal memproses scan</div>`;
+      });
   }
   
   // ==================== INPUT IZIN ====================
@@ -992,8 +757,8 @@
     const statusEl = document.getElementById('izin-status');
     statusEl.innerHTML = '<div class="loading">Menyimpan...</div>';
     
-    google.script.run
-      .withSuccessHandler(function(result) {
+    callApi('inputIzin', { data })
+      .then(result => {
         statusEl.innerHTML = `<div style="background:#e8f5e9;padding:10px;border-radius:6px;color:#2e7d32;font-weight:600;">✅ ${result.message}</div>`;
         showToast('✅ ' + result.message, 'success');
         document.getElementById('izin-id').value = '';
@@ -1001,11 +766,9 @@
         document.getElementById('izin-keterangan').value = '';
         document.getElementById('izin-id').focus();
       })
-      .withFailureHandler(function(err) {
-        statusEl.innerHTML = `<div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;">❌ ${err.message}</div>`;
-        showToast('Error: ' + err.message, 'error');
-      })
-      .inputIzin(data);
+      .catch(() => {
+        statusEl.innerHTML = `<div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;">❌ Gagal menyimpan</div>`;
+      });
   }
   
   // ==================== REKAP ====================
@@ -1039,8 +802,8 @@
     const hasil = document.getElementById('rekap-hasil');
     hasil.innerHTML = '<div class="loading">Memuat data...</div>';
     
-    google.script.run
-      .withSuccessHandler(function(data) {
+    callApi('getRekap', { role, tglMulai, tglSelesai })
+      .then(data => {
         let html = `
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:4px;margin-bottom:12px;">
             <div class="stat-mini success"><span class="number">${data.stats.hadir}</span><span class="label">Hadir</span></div>
@@ -1059,10 +822,9 @@
         html += '</table></div>';
         hasil.innerHTML = html;
       })
-      .withFailureHandler(function(err) {
-        hasil.innerHTML = `<p style="color:red;">❌ ${err.message}</p>`;
-      })
-      .getRekap(role, tglMulai, tglSelesai);
+      .catch(() => {
+        hasil.innerHTML = '<p style="color:red;">❌ Gagal memuat data</p>';
+      });
   }
   
   function exportRekap(role, format) {
@@ -1071,8 +833,9 @@
     if (!tglMulai || !tglSelesai) { showToast('Pilih periode!', 'error'); return; }
     
     showToast('⏳ Memproses...', 'info');
-    google.script.run
-      .withSuccessHandler(function(result) {
+    
+    callApi('exportData', { role, tglMulai, tglSelesai, format })
+      .then(result => {
         if (result.success) {
           const blob = new Blob([result.data], { type: result.type });
           const url = URL.createObjectURL(blob);
@@ -1083,10 +846,9 @@
           showToast('✅ Download berhasil!', 'success');
         }
       })
-      .withFailureHandler(function(err) {
-        showToast('Error: ' + err.message, 'error');
-      })
-      .exportData(role, tglMulai, tglSelesai, format);
+      .catch(() => {
+        showToast('❌ Gagal export data', 'error');
+      });
   }
   
   // ==================== PENGATURAN ====================
@@ -1099,8 +861,8 @@
       </div>
     `;
     
-    google.script.run
-      .withSuccessHandler(function(data) {
+    callApi('getPengaturan')
+      .then(data => {
         let html = `
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div class="form-group"><label>🔑 PIN Guru</label><input type="text" id="set-pin-guru" value="${data.PIN_GURU || ''}" style="letter-spacing:2px;"></div>
@@ -1135,10 +897,9 @@
         }
         document.getElementById('daftar-libur').innerHTML = liburHtml;
       })
-      .withFailureHandler(function(err) {
-        document.getElementById('pengaturan-content').innerHTML = `<p style="color:red;">❌ ${err.message}</p>`;
-      })
-      .getPengaturan();
+      .catch(() => {
+        document.getElementById('pengaturan-content').innerHTML = '<p style="color:red;">❌ Gagal memuat pengaturan</p>';
+      });
   }
   
   function updatePIN() {
@@ -1146,14 +907,13 @@
     const pinAdmin = document.getElementById('set-pin-admin').value.trim();
     if (!pinGuru || !pinAdmin) { showToast('PIN tidak boleh kosong!', 'error'); return; }
     
-    google.script.run
-      .withSuccessHandler(function() { showToast('✅ PIN berhasil diupdate', 'success'); })
-      .withFailureHandler(function(err) { showToast('Error: ' + err.message, 'error'); })
-      .updatePengaturan('PIN_GURU', pinGuru);
+    callApi('updatePengaturan', { key: 'PIN_GURU', value: pinGuru })
+      .then(() => { showToast('✅ PIN Guru diupdate', 'success'); })
+      .catch(() => { showToast('❌ Gagal update PIN Guru', 'error'); });
     
-    google.script.run
-      .withSuccessHandler(function() {})
-      .updatePengaturan('PIN_ADMIN', pinAdmin);
+    callApi('updatePengaturan', { key: 'PIN_ADMIN', value: pinAdmin })
+      .then(() => { showToast('✅ PIN Admin diupdate', 'success'); })
+      .catch(() => { showToast('❌ Gagal update PIN Admin', 'error'); });
   }
   
   function addHariLibur() {
@@ -1161,23 +921,28 @@
     const ket = document.getElementById('libur-keterangan').value.trim() || 'Libur';
     if (!tgl) { showToast('Pilih tanggal!', 'error'); return; }
     
-    google.script.run
-      .withSuccessHandler(function(result) {
-        showToast('✅ ' + result.message, 'success');
+    callApi('updatePengaturan', { key: 'LIBUR_' + tgl, value: ket })
+      .then(() => {
+        showToast('✅ Hari libur ditambahkan', 'success');
         document.getElementById('libur-tanggal').value = '';
         document.getElementById('libur-keterangan').value = '';
         loadPengaturan();
       })
-      .withFailureHandler(function(err) { showToast('Error: ' + err.message, 'error'); })
-      .updatePengaturan('LIBUR_' + tgl, ket);
+      .catch(() => {
+        showToast('❌ Gagal menambahkan', 'error');
+      });
   }
   
   function removeLibur(key) {
     if (!confirm('Hapus hari libur ini?')) return;
-    google.script.run
-      .withSuccessHandler(function() { showToast('✅ Dihapus', 'success'); loadPengaturan(); })
-      .withFailureHandler(function(err) { showToast('Error: ' + err.message, 'error'); })
-      .updatePengaturan(key, '');
+    callApi('updatePengaturan', { key: key, value: '' })
+      .then(() => {
+        showToast('✅ Dihapus', 'success');
+        loadPengaturan();
+      })
+      .catch(() => {
+        showToast('❌ Gagal menghapus', 'error');
+      });
   }
   
   // ==================== INIT ====================
