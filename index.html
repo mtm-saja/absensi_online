@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SMP NEGERI 1 SOBANG - Absensi Online</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; }
+    
+    /* ===== TOPBAR ===== */
+    .topbar {
+      background: linear-gradient(135deg, #1a237e, #0d47a1);
+      color: white;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+    }
+    .topbar h1 { font-size: 20px; font-weight: 600; }
+    .topbar .time { font-size: 14px; opacity: 0.9; }
+    .topbar .clock { background: rgba(255,255,255,0.2); padding: 5px 15px; border-radius: 20px; }
+    
+    /* ===== SIDEBAR ===== */
+    .sidebar {
+      position: fixed;
+      top: 70px;
+      left: 0;
+      width: 250px;
+      height: calc(100vh - 70px);
+      background: white;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      transition: transform 0.3s ease;
+      z-index: 999;
+    }
+    .sidebar .menu-item {
+      padding: 15px 25px;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: #333;
+      text-decoration: none;
+    }
+    .sidebar .menu-item:hover {
+      background: #e3f2fd;
+      color: #0d47a1;
+    }
+    .sidebar .menu-item.active {
+      background: #0d47a1;
+      color: white;
+    }
+    .sidebar .menu-item .icon { font-size: 20px; width: 30px; }
+    .sidebar .menu-group { 
+      padding: 10px 25px; 
+      font-weight: 700; 
+      color: #0d47a1;
+      background: #f5f5f5;
+      border-bottom: 2px solid #0d47a1;
+    }
+    
+    /* ===== MAIN CONTENT ===== */
+    .main-content {
+      margin-left: 250px;
+      margin-top: 70px;
+      padding: 30px;
+      min-height: calc(100vh - 130px);
+    }
+    
+    /* ===== FOOTER ===== */
+    .footer {
+      margin-left: 250px;
+      background: #1a237e;
+      color: white;
+      text-align: center;
+      padding: 15px;
+      font-size: 14px;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+    }
+    .footer a { color: #90caf9; text-decoration: none; }
+    
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main-content, .footer { margin-left: 0; }
+      .topbar h1 { font-size: 16px; }
+      .hamburger { display: block !important; }
+    }
+    .hamburger { display: none; background: none; border: none; color: white; font-size: 28px; cursor: pointer; }
+    
+    /* ===== COMPONENTS ===== */
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .card-title { font-size: 18px; font-weight: 600; color: #1a237e; margin-bottom: 15px; }
+    
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+      background: #0d47a1;
+      color: white;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(13,71,161,0.4); }
+    .btn-danger { background: #c62828; }
+    .btn-success { background: #2e7d32; }
+    .btn-warning { background: #f57f17; }
+    
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-weight: 600; margin-bottom: 5px; color: #333; }
+    .form-group input, .form-group select { 
+      width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; 
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+      padding: 15px;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .stat-card .number { font-size: 28px; font-weight: 700; color: #0d47a1; }
+    .stat-card .label { font-size: 14px; color: #555; }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    table th {
+      background: #0d47a1;
+      color: white;
+      padding: 12px;
+      text-align: left;
+    }
+    table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid #eee;
+    }
+    table tr:hover { background: #f5f5f5; }
+    
+    .qr-scanner {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+      border: 2px dashed #0d47a1;
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+    }
+    #scanner-container { width: 100%; height: 300px; background: #000; border-radius: 8px; }
+    
+    .toast {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      padding: 15px 25px;
+      border-radius: 8px;
+      color: white;
+      z-index: 9999;
+      animation: slideIn 0.5s ease;
+    }
+    .toast-success { background: #2e7d32; }
+    .toast-error { background: #c62828; }
+    .toast-info { background: #0d47a1; }
+    
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div style="display:flex;align-items:center;gap:15px;">
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <h1>🏫 SMP NEGERI 1 SOBANG</h1>
+  </div>
+  <div class="clock" id="clock">⏰ Loading...</div>
+</div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="menu-group">📋 NAVIGASI</div>
+  <a class="menu-item active" onclick="loadPage('dashboard')">
+    <span class="icon">📊</span> Dashboard
+  </a>
+  
+  <div class="menu-group">👨‍👩‍👧 ORANG TUA</div>
+  <a class="menu-item" onclick="loadPage('ortu')">
+    <span class="icon">🔍</span> Cek Absensi Siswa
+  </a>
+  
+  <div class="menu-group">👨‍🏫 GURU</div>
+  <a class="menu-item" onclick="loadPage('guru-login')">
+    <span class="icon">🔐</span> Login Guru
+  </a>
+  <a class="menu-item" onclick="loadPage('guru-scan')">
+    <span class="icon">📷</span> QR Barcode Siswa
+  </a>
+  <a class="menu-item" onclick="loadPage('guru-izin')">
+    <span class="icon">📝</span> Input Izin/Sakit Siswa
+  </a>
+  <a class="menu-item" onclick="loadPage('guru-rekap')">
+    <span class="icon">📈</span> Rekap Absensi Siswa
+  </a>
+  
+  <div class="menu-group">👨‍💼 ADMIN</div>
+  <a class="menu-item" onclick="loadPage('admin-login')">
+    <span class="icon">🔐</span> Login Admin
+  </a>
+  <a class="menu-item" onclick="loadPage('admin-scan')">
+    <span class="icon">📷</span> QR Barcode
+  </a>
+  <a class="menu-item" onclick="loadPage('admin-izin')">
+    <span class="icon">📝</span> Input Izin/Sakit
+  </a>
+  <a class="menu-item" onclick="loadPage('admin-rekap')">
+    <span class="icon">📈</span> Rekap Absensi
+  </a>
+  <a class="menu-item" onclick="loadPage('admin-pengaturan')">
+    <span class="icon">⚙️</span> Pengaturan
+  </a>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="main-content" id="main-content">
+  <!-- Content akan di-load di sini -->
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  © 2026 SMP NEGERI 1 SOBANG | Absensi Online v2.0 | 
+  <a href="#" onclick="loadPage('dashboard')">Dashboard</a>
+</div>
+
+<script>
+  // ==================== GLOBAL VARIABLES ====================
+  let currentPage = 'dashboard';
+  let currentUser = null; // { role: 'guru'/'admin', ... }
+  
+  // ==================== CLOCK ====================
+  function updateClock() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    document.getElementById('clock').textContent = '⏰ ' + timeStr;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+  
+  // ==================== SIDEBAR TOGGLE ====================
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+  }
+  
+  // ==================== PAGE LOADER ====================
+  function loadPage(page, params = null) {
+    currentPage = page;
+    const main = document.getElementById('main-content');
+    
+    // Highlight active menu
+    document.querySelectorAll('.menu-item').forEach(el => el.classList.remove('active'));
+    const menuItems = document.querySelectorAll('.menu-item');
+    let found = false;
+    menuItems.forEach(el => {
+      const onclick = el.getAttribute('onclick');
+      if (onclick && onclick.includes(`'${page}'`)) {
+        el.classList.add('active');
+        found = true;
+      }
+    });
+    if (!found && page === 'dashboard') {
+      document.querySelector('.menu-item[onclick*="dashboard"]')?.classList.add('active');
+    }
+    
+    // Close sidebar on mobile
+    if (window.innerWidth <= 768) {
+      document.getElementById('sidebar').classList.remove('open');
+    }
+    
+    // Load content based on page
+    switch(page) {
+      case 'dashboard': loadDashboard(); break;
+      case 'ortu': loadOrangTua(); break;
+      case 'guru-login': loadLogin('guru'); break;
+      case 'admin-login': loadLogin('admin'); break;
+      case 'guru-scan': loadScan('siswa'); break;
+      case 'admin-scan': loadScan('all'); break;
+      case 'guru-izin': loadIzin('siswa'); break;
+      case 'admin-izin': loadIzin('all'); break;
+      case 'guru-rekap': loadRekap('siswa'); break;
+      case 'admin-rekap': loadRekap('all'); break;
+      case 'admin-pengaturan': loadPengaturan(); break;
+      default: main.innerHTML = '<div class="card"><h2>Halaman tidak ditemukan</h2></div>';
+    }
+  }
+  
+  // ==================== TOAST NOTIFICATION ====================
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+  }
+  
+  // ==================== DASHBOARD ====================
+  function loadDashboard() {
+    const main = document.getElementById('main-content');
+    main.innerHTML = `
+      <div class="card">
+        <h2 class="card-title">📊 Dashboard</h2>
+        <div id="dashboard-stats">Loading...</div>
+      </div>
+      <div class="card">
+        <h3 class="card-title">⏰ Jadwal Scan Hari Ini</h3>
+        <div id="jadwal-scan">Loading...</div>
+      </div>
+    `;
+    
+    google.script.run
+      .withSuccessHandler(function(data) {
+        let html = `
+          <div class="stats-grid">
+            <div class="stat-card"><div class="number">${data.totalSiswa}</div><div class="label">Total Siswa</div></div>
+            <div class="stat-card"><div class="number">${data.totalGuru}</div><div class="label">Total Guru</div></div>
+          </div>
+          <h4>Siswa Hari Ini</h4>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="number">${data.siswa.hadir}</div><div class="label">Hadir</div></div>
+            <div class="stat-card" style="background:#fff3e0;"><div class="number">${data.siswa.terlambat}</div><div class="label">Terlambat</div></div>
+            <div class="stat-card" style="background:#e8f5e9;"><div class="number">${data.siswa.izin}</div><div class="label">Izin</div></div>
+            <div class="stat-card" style="background:#fce4ec;"><div class="number">${data.siswa.sakit}</div><div class="label">Sakit</div></div>
+            <div class="stat-card" style="background:#ffebee;"><div class="number">${data.siswa.alpa}</div><div class="label">Alpa</div></div>
+            <div class="stat-card" style="background:#f44336;color:white;"><div class="number">${data.siswa.bolos}</div><div class="label">Bolos</div></div>
+          </div>
+          <h4>Guru Hari Ini</h4>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="number">${data.guru.hadir}</div><div class="label">Hadir</div></div>
+            <div class="stat-card" style="background:#fff3e0;"><div class="number">${data.guru.terlambat}</div><div class="label">Terlambat</div></div>
+            <div class="stat-card" style="background:#e8f5e9;"><div class="number">${data.guru.izin}</div><div class="label">Izin</div></div>
+            <div class="stat-card" style="background:#fce4ec;"><div class="number">${data.guru.sakit}</div><div class="label">Sakit</div></div>
+            <div class="stat-card" style="background:#ffebee;"><div class="number">${data.guru.alpa}</div><div class="label">Alpa</div></div>
+            <div class="stat-card" style="background:#f44336;color:white;"><div class="number">${data.guru.bolos}</div><div class="label">Bolos</div></div>
+          </div>
+        `;
+        document.getElementById('dashboard-stats').innerHTML = html;
+      })
+      .withFailureHandler(function(err) {
+        document.getElementById('dashboard-stats').innerHTML = '<p style="color:red;">Error loading stats</p>';
+        console.error(err);
+      })
+      .getDashboardStats();
+    
+    // Load jadwal scan
+    google.script.run
+      .withSuccessHandler(function(data) {
+        let html = '<ul style="list-style:none;padding:0;">';
+        data.forEach(sesi => {
+          html += `<li style="padding:10px;border-bottom:1px solid #eee;">
+            <strong>${sesi.sesi}</strong>: ${sesi.mulai} - ${sesi.tepat} (Tepat) | ${sesi.tepat} - ${sesi.terlambat} (Terlambat)
+          </li>`;
+        });
+        html += '</ul>';
+        document.getElementById('jadwal-scan').innerHTML = html;
+      })
+      .getWaktuOperasional();
+  }
+  
+  // ==================== ORANG TUA ====================
+  function loadOrangTua() {
+    const main = document.getElementById('main-content');
+    main.innerHTML = `
+      <div class="card">
+        <h2 class="card-title">🔍 Cek Absensi Siswa</h2>
+        <p>Masukkan NISN dan periode tanggal untuk melihat riwayat absensi</p>
+        <div class="form-group">
+          <label>NISN</label>
+          <input type="text" id="ortu-nisn" placeholder="Masukkan NISN siswa">
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;">
+          <div class="form-group">
+            <label>Tanggal Mulai</label>
+            <input type="date" id="ortu-tgl-mulai">
+          </div>
+          <div class="form-group">
+            <label>Tanggal Selesai</label>
+            <input type="date" id="ortu-tgl-selesai">
+          </div>
+        </div>
+        <button class="btn" onclick="cekAbsensiOrtu()">🔍 Cari</button>
+        <div id="ortu-hasil" style="margin-top:20px;"></div>
+      </div>
+    `;
+    // Set default dates
+    const today = new Date();
+    const monthAgo = new Date();
+    monthAgo.setMonth(monthAgo.getMonth() - 1);
+    document.getElementById('ortu-tgl-mulai').value = monthAgo.toISOString().split('T')[0];
+    document.getElementById('ortu-tgl-selesai').value = today.toISOString().split('T')[0];
+  }
+  
+  function cekAbsensiOrtu() {
+    const nisn = document.getElementById('ortu-nisn').value;
+    const tglMulai = document.getElementById('ortu-tgl-mulai').value;
+    const tglSelesai = document.getElementById('ortu-tgl-selesai').value;
+    
+    if (!nisn) {
+      showToast('Masukkan NISN!', 'error');
+      return;
+    }
+    
+    google.script.run
+      .withSuccessHandler(function(data) {
+        const hasil = document.getElementById('ortu-hasil');
+        if (data.length === 0) {
+          hasil.innerHTML = '<p style="color:orange;">Tidak ada data absensi untuk periode ini</p>';
+          return;
+        }
+        let html = `
+          <h4>📋 Riwayat Absensi (${data.length} data)</h4>
+          <table>
+            <tr><th>Tanggal</th><th>Sesi</th><th>Status</th><th>Waktu</th><th>Keterangan</th></tr>
+        `;
+        data.forEach(row => {
+          html += `<tr><td>${row.Tanggal}</td><td>${row.Sesi}</td>
+            <td><span style="padding:3px 10px;border-radius:12px;background:${row.Status === 'Hadir' ? '#4caf50' : row.Status === 'Terlambat' ? '#ff9800' : '#f44336'};color:white;">${row.Status}</span></td>
+            <td>${row.Waktu_Scan || '-'}</td><td>${row.Keterangan || '-'}</td></tr>`;
+        });
+        html += '</table>';
+        hasil.innerHTML = html;
+      })
+      .withFailureHandler(function(err) {
+        showToast('Error: ' + err.message, 'error');
+      })
+      .cekAbsensiSiswa(nisn, tglMulai, tglSelesai);
+  }
+  
+  // ==================== LOGIN ====================
+  function loadLogin(role) {
+    const main = document.getElementById('main-content');
+    const title = role === 'guru' ? '👨‍🏫 Login Guru' : '👨‍💼 Login Admin';
+    main.innerHTML = `
+      <div class="card" style="max-width:400px;margin:0 auto;">
+        <h2 class="card-title">${title}</h2>
+        <div class="form-group">
+          <label>🔑 PIN</label>
+          <input type="password" id="login-pin" placeholder="Masukkan PIN" onkeypress="if(event.key==='Enter') doLogin('${role}')">
+        </div>
+        <button class="btn" onclick="doLogin('${role}')">🔐 Login</button>
+        <div id="login-status" style="margin-top:15px;"></div>
+      </div>
+    `;
+  }
+  
+  function doLogin(role) {
+    const pin = document.getElementById('login-pin').value;
+    if (!pin) {
+      showToast('Masukkan PIN!', 'error');
+      return;
+    }
+    
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.success) {
+          currentUser = { role: result.role, pin: pin };
+          showToast('✅ Login berhasil!', 'success');
+          // Redirect to appropriate dashboard
+          if (result.role === 'guru') {
+            loadPage('guru-scan');
+          } else {
+            loadPage('admin-scan');
+          }
+        } else {
+          showToast('❌ ' + result.message, 'error');
+        }
+      })
+      .withFailureHandler(function(err) {
+        showToast('Error: ' + err.message, 'error');
+      })
+      .verifyLogin(role, pin);
+  }
+  
+  // ==================== SCAN QR ====================
+  function loadScan(role) {
+    const main = document.getElementById('main-content');
+    const title = role === 'siswa' ? '📷 Scan QR Siswa' : '📷 Scan QR (Siswa/Guru)';
+    const roleText = role === 'siswa' ? 'siswa' : 'semua';
+    
+    main.innerHTML = `
+      <div class="card">
+        <h2 class="card-title">${title}</h2>
+        <p id="scan-status">Arahkan kamera ke QR Code</p>
+        <div class="qr-scanner">
+          <video id="video" autoplay playsinline style="width:100%;height:300px;object-fit:cover;background:#000;border-radius:8px;"></video>
+          <br>
+          <button class="btn btn-success" onclick="startScanner('${roleText}')">📷 Mulai Scan</button>
+          <button class="btn btn-danger" onclick="stopScanner()">⏹ Stop</button>
+          <button class="btn btn-warning" onclick="toggleFlash()">💡 Flash</button>
+        </div>
+        <div id="scan-result" style="margin-top:20px;"></div>
+      </div>
+    `;
+    
+    // Load QR Scanner library
+    if (typeof window.QRScanner === 'undefined') {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/instascan/1.0.0/instascan.min.js';
+      document.head.appendChild(script);
+    }
+  }
+  
+  let scanner = null;
+  let currentScanRole = '';
+  
+  function startScanner(role) {
+    currentScanRole = role;
+    const video = document.getElementById('video');
+    if (!video) return;
+    
+    if (typeof Instascan === 'undefined') {
+      showToast('Loading scanner library...', 'info');
+      setTimeout(() => startScanner(role), 1000);
+      return;
+    }
+    
+    if (scanner) {
+      scanner.stop();
+      scanner = null;
+    }
+    
+    scanner = new Instascan.Scanner({ video: video, scanPeriod: 5 });
+    
+    scanner.addListener('scan', function(content) {
+      // Content adalah barcode yang discan
+      document.getElementById('scan-status').textContent = '📥 Memproses: ' + content;
+      
+      // Kirim ke server
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            document.getElementById('scan-result').innerHTML = `
+              <div style="background:#e8f5e9;padding:15px;border-radius:8px;border-left:4px solid #2e7d32;">
+                <h3>✅ ${result.message}</h3>
+                <p>Nama: ${result.data.nama}</p>
+                <p>Status: ${result.data.status}</p>
+                <p>Sesi: ${result.data.sesi}</p>
+              </div>
+            `;
+            showToast('✅ ' + result.message, 'success');
+          } else {
+            document.getElementById('scan-result').innerHTML = `
+              <div style="background:#ffebee;padding:15px;border-radius:8px;border-left:4px solid #c62828;">
+                <h3>❌ ${result.message}</h3>
+              </div>
+            `;
+            showToast('❌ ' + result.message, 'error');
+          }
+          document.getElementById('scan-status').textContent = '✅ Selesai, siap scan lagi';
+        })
+        .withFailureHandler(function(err) {
+          showToast('Error: ' + err.message, 'error');
+        })
+        .scanQR(content, role);
+    });
+    
+    Instascan.Camera.getCameras().then(function(cameras) {
+      if (cameras.length > 0) {
+        // Pilih kamera belakang jika ada
+        const backCam = cameras.find(c => c.name.toLowerCase().includes('back')) || cameras[0];
+        scanner.start(backCam);
+        document.getElementById('scan-status').textContent = '📷 Kamera aktif, arahkan ke QR Code';
+      } else {
+        document.getElementById('scan-status').textContent = '❌ Tidak ada kamera terdeteksi!';
+        showToast('Tidak ada kamera', 'error');
+      }
+    }).catch(function(err) {
+      console.error(err);
+      document.getElementById('scan-status').textContent = '❌ Error: ' + err.message;
+      showToast('Error kamera: ' + err.message, 'error');
+    });
+  }
+  
+  function stopScanner() {
+    if (scanner) {
+      scanner.stop();
+      scanner = null;
+      document.getElementById('scan-status').textContent = '⏹ Scanner dihentikan';
+      document.getElementById('video').srcObject = null;
+    }
+  }
+  
+  function toggleFlash() {
+    if (scanner && scanner._camera) {
+      // Flash tidak didukung di semua browser
+      showToast('Flash tidak tersedia di browser ini', 'info');
+    }
+  }
+  
+  // ==================== INPUT IZIN/SAKIT ====================
+  function loadIzin(role) {
+    const main = document.getElementById('main-content');
+    const title = role === 'siswa' ? '📝 Input Izin/Sakit Siswa' : '📝 Input Izin/Sakit (Siswa/Guru)';
+    const roleText = role === 'siswa' ? 'siswa' : 'all';
+    
+    main.innerHTML = `
+      <div class="card">
+        <h2 class="card-title">${title}</h2>
+        <div class="form-group">
+          <label>NISN/NIP</label>
+          <input type="text" id="izin-id" placeholder="Masukkan NISN (siswa) atau NIP (guru)">
+        </div>
+        <div class="form-group">
+          <label>Nama</label>
+          <input type="text" id="izin-nama" placeholder="Nama lengkap">
+        </div>
+        <div class="form-group">
+          <label>Tanggal</label>
+          <input type="date" id="izin-tanggal">
+        </div>
+        <div class="form-group">
+          <label>Jenis</label>
+          <select id="izin-jenis">
+            <option value="Izin">Izin</option>
+            <option value="Sakit">Sakit</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Keterangan</label>
+          <input type="text" id="izin-keterangan" placeholder="Keterangan (opsional)">
+        </div>
+        <button class="btn" onclick="submitIzin('${roleText}')">📝 Simpan</button>
+        <div id="izin-status" style="margin-top:15px;"></div>
+      </div>
+    `;
+    document.getElementById('izin-tanggal').value = new Date().toISOString().split('T')[0];
+  }
+  
+  function submitIzin(role) {
+    const data = {
+      id: document.getElementById('izin-id').value,
+      nama: document.getElementById('izin-nama').value,
+      tanggal: document.getElementById('izin-tanggal').value,
+      jenis: document.getElementById('izin-jenis').value,
+      keterangan: document.getElementById('izin-keterangan').value || '-',
+      role: role
+    };
+    
+    if (!data.id || !data.nama || !data.tanggal) {
+      showToast('Isi semua field yang wajib!', 'error');
+      return;
+    }
+    
+    google.script.run
+      .withSuccessHandler(function(result) {
+        document.getElementById('izin-status').innerHTML = `
+          <div style="background:#e8f5e9;padding:15px;border-radius:8px;border-left:4px solid #2e7d32;">
+            ✅ ${result.message}
+          </div>
+        `;
+        showToast('✅ ' + result.message, 'success');
+        // Clear form
+        document.getElementById('izin-id').value = '';
+        document.getElementById('izin-nama').value = '';
+      })
+      .withFailureHandler(function(err) {
+        showToast('Error: ' + err.message, 'error');
+      })
+      .inputIzin(data);
+  }
+  
+  // ==================== REKAP ABSENSI ====================
+  function loadRekap(role) {
+    const main = document.getElementById('main-content');
+    const title = role === 'siswa' ? '📈 Rekap Absensi Siswa' : '📈 Rekap Absensi (Siswa/Guru)';
+    const roleText = role === 'siswa' ? 'siswa' : 'all';
+    
+    main.innerHTML = `
+      <div class="card">
+        <h2 class="card-title">${title}</h2>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:15px;">
+          <div class="form-group">
+            <label>Tanggal Mulai</label>
+            <input type="date" id="rekap-tgl-mulai">
+          </div>
+          <div class="form-group">
+            <label>Tanggal Selesai</label>
+            <input type="date" id="rekap-tgl-selesai">
+          </div>
+          <div class="form-group" style="display:flex;align-items:flex-end;gap:10px;">
+            <button class="btn" onclick="loadRekapData('${roleText}')">📊 Tampilkan</button>
+            <button class="btn btn-success" onclick="exportRekap('${roleText}','csv')">📥 CSV</button>
+            <button class="btn btn-danger" onclick="exportRekap('${roleText}','pdf')">📥 PDF</button>
+          </div>
+        </div>
+        <div id="rekap-hasil" style="margin-top:20px;"></div>
+      </div>
+    `;
+    // Set default dates (bulan ini)
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    document.getElementById('rekap-tgl-mulai').value = firstDay.toISOString().split('T')[0];
+    document.getElementById('rekap-tgl-selesai').value = today.toISOString().split('T')[0];
+  }
+  
+  function loadRekapData(role) {
+    const tglMulai = document.getElementById('rekap-tgl-mulai').value;
+    const tglSelesai = document.getElementById('rekap-tgl-selesai').value;
+    
+    if (!tglMulai || !tglSelesai) {
+      showToast('Pilih periode tanggal!', 'error');
+      return;
+    }
+    
+    google.script.run
+      .withSuccessHandler(function(data) {
+        const hasil = document.getElementById('rekap-hasil');
+        let html = `
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px;margin-bottom:20px;">
+            <div class="stat-card"><div class="number">${data.stats.hadir}</div><div class="label">Hadir</div></div>
+            <div class="stat-card" style="background:#fff3e0;"><div class="number">${data.stats.terlambat}</div><div class="label">Terlambat</div></div>
+            <div class="stat-card" style="background:#e8f5e9;"><div class="number">${data.stats.izin}</div><div class="label">Izin</div></div>
+            <div class="stat-card" style="background:#fce4ec;"><div class="number">${data.stats.sakit}</div><div class="label">Sakit</div></div>
+            <div class="stat-card" style="background:#ffebee;"><div class="number">${data.stats.alpa}</div><div class="label">Alpa</div></div>
+            <div class="stat-card" style="background:#f44336;color:white;"><div class="number">${data.stats.bolos}</div><div class="label">Bolos</div></div>
+            <div class="stat-card" style="background:#0d47a1;color:white;"><div class="number">${data.totalData}</div><div class="label">Total Data</div></div>
+          </div>
+          <h4>📋 Detail Absensi</h4>
+          <div style="overflow-x:auto;">
+            <table>
+              <tr>${data.headers.map(h => `<th>${h}</th>`).join('')}</tr>
+        `;
+        data.data.forEach(row => {
+          html += `<tr>${row.map(cell => `<td>${cell}</td>`).join('')}</tr>`;
+        });
+        html += '</table></div>';
+        hasil.innerHTML = html;
+      })
+      .withFailureHandler(function(err) {
+        showToast('Error: ' + err.message, 'error');
+      })
+      .getRekap(role, tglMulai, tglSelesai);
+  }
+  
+  function exportRekap(role, format) {
+    const tglMulai = document.getElementById('rekap-tgl-mulai').value;
+    const tglSelesai = document.getElementById('rekap-tgl-selesai').value;
+    
+    if (!tglMulai || !tglSelesai) {
+      showToast('Pilih periode tanggal!', 'error');
+      return;
+    }
+    
+    showToast('⏳ Sedang memproses...', 'info');
+    
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.success) {
+          // Download file
+          const blob = new Blob([result.data], { type: result.type });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = result.fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          showToast('✅ Download berhasil!', 'success');
+        }
+      })
+      .withFailureHandler(function(err) {
+        showToast('Error: ' + err.message, 'error');
+      })
+      .exportData(role, tglMulai, tglSelesai, format);
+  }
+  
+  // ==================== PENGATURAN (ADMIN) ====================
+  function loadPengaturan() {
+    const main = document.getElementById('main-content');
+    main.innerHTML = `
+      <div class="card">
+        <h2 class="card-title">⚙️ Pengaturan</h2>
+        <div id="pengaturan-content">Loading...</div>
+      </div>
+    `;
+    
+    google.script.run
+      .withSuccessHandler(function(data) {
+        let html = `
+          <div class="form-group">
+            <label>PIN Guru</label>
+            <input type="text" id="set-pin-guru" value="${data.PIN_GURU || ''}">
+          </div>
+          <div class="form-group">
+            <label>PIN Admin</label>
+            <input type="text" id="set-pin-admin" value="${data.PIN_ADMIN || ''}">
+          </div>
+          <button class="btn" onclick="updatePIN()">💾 Update PIN</button>
+          <hr style="margin:20px 0;">
+          <h3>📅 Hari Libur</h3>
+          <div class="form-group">
+            <input type="date" id="libur-tanggal">
+            <input type="text" id="libur-keterangan" placeholder="Keterangan libur" style="margin-top:10px;">
+            <button class="btn btn-success" onclick="addHariLibur()" style="margin-top:10px;">➕ Tambah Hari Libur</button>
+          </div>
+          <div id="daftar-libur"></div>
+          <hr style="margin:20px 0;">
+          <h3>⏰ Sesi Scan</h3>
+          <div id="sesi-scan-list"></div>
+        `;
+        document.getElementById('pengaturan-content').innerHTML = html;
+      })
+      .withFailureHandler(function(err) {
+        document.getElementById('pengaturan-content').innerHTML = '<p style="color:red;">Error loading settings</p>';
+      })
+      .getPengaturan();
+  }
+  
+  function updatePIN() {
+    const pinGuru = document.getElementById('set-pin-guru').value;
+    const pinAdmin = document.getElementById('set-pin-admin').value;
+    
+    if (!pinGuru || !pinAdmin) {
+      showToast('PIN tidak boleh kosong!', 'error');
+      return;
+    }
+    
+    google.script.run
+      .withSuccessHandler(function(result) {
+        showToast('✅ ' + result.message, 'success');
+      })
+      .withFailureHandler(function(err) {
+        showToast('Error: ' + err.message, 'error');
+      })
+      .updatePengaturan('PIN_GURU', pinGuru);
+    
+    google.script.run
+      .withSuccessHandler(function(result) {
+        showToast('✅ ' + result.message, 'success');
+      })
+      .updatePengaturan('PIN_ADMIN', pinAdmin);
+  }
+  
+  function addHariLibur() {
+    const tgl = document.getElementById('libur-tanggal').value;
+    const ket = document.getElementById('libur-keterangan').value || 'Libur';
+    
+    if (!tgl) {
+      showToast('Pilih tanggal!', 'error');
+      return;
+    }
+    
+    google.script.run
+      .withSuccessHandler(function(result) {
+        showToast('✅ ' + result.message, 'success');
+        document.getElementById('libur-tanggal').value = '';
+        document.getElementById('libur-keterangan').value = '';
+        loadPengaturan(); // Refresh
+      })
+      .withFailureHandler(function(err) {
+        showToast('Error: ' + err.message, 'error');
+      })
+      .updatePengaturan('LIBUR_' + tgl, ket);
+  }
+  
+  // ==================== INIT ====================
+  window.onload = function() {
+    loadPage('dashboard');
+  };
+</script>
+
+</body>
+</html>
