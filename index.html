@@ -149,9 +149,9 @@
     .session-card.active .sesi-status { color: #2e7d32; }
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
     
-    .rekap-table-wrap { overflow-x: auto; }
+    .rekap-table-wrap { overflow-x: auto; max-height: 300px; overflow-y: auto; }
     .rekap-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-    .rekap-table th { background: #0d47a1; color: white; padding: 6px 8px; text-align: center; white-space: nowrap; }
+    .rekap-table th { background: #0d47a1; color: white; padding: 6px 8px; text-align: center; white-space: nowrap; position: sticky; top: 0; z-index: 10; }
     .rekap-table td { padding: 5px 8px; border-bottom: 1px solid #eee; text-align: center; }
     .rekap-table tr:hover { background: #f5f5f5; }
     .status-badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
@@ -197,6 +197,49 @@
     .mb-10 { margin-bottom: 10px; }
     .flex { display: flex; gap: 8px; flex-wrap: wrap; }
     .flex-center { display: flex; align-items: center; justify-content: center; gap: 8px; }
+    
+    .setting-group {
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 12px;
+      background: #fafafa;
+    }
+    .setting-group h4 {
+      color: #1a237e;
+      margin-bottom: 8px;
+      font-size: 13px;
+    }
+    .setting-group .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr;
+      gap: 8px;
+      align-items: end;
+    }
+    @media (max-width: 600px) {
+      .setting-group .row {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+    .setting-group .row .form-group { margin-bottom: 0; }
+    .checkbox-group {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 8px 0;
+    }
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    .checkbox-group input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -243,11 +286,11 @@
 </div>
 
 <!-- FOOTER -->
-<div class="footer">© 2026 SMP NEGERI 1 SOBANG | Absensi Online v2.3</div>
+<div class="footer">© 2026 SMP NEGERI 1 SOBANG | Absensi Online v2.4</div>
 
 <script>
   // ==================== KONFIGURASI ====================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbx1ZaSWOWdX4inW7DBLTq8BVQnxM3VeYqUsef2Jwgc65Hiv6dADgZcFrh203ktShpaYug/exec'; // Ganti dengan URL Web App Anda
+  const API_URL = 'https://script.google.com/macros/s/AKfycbznp0jtrq02vjd843aSnbn4RzylcmyAVe-bNYpagP-uIE5GHDvgSuXcMulKvH8MOY44eQ/exec'; // Ganti dengan URL Web App Anda
   
   // ==================== GLOBAL ====================
   let currentUser = null;
@@ -297,7 +340,7 @@
     setTimeout(() => { if (toast.parentNode) toast.remove(); }, 3500);
   }
   
-  // ==================== JSONP HELPER (BYPASS CORS) ====================
+  // ==================== JSONP HELPER ====================
   function jsonp(action, params = {}) {
     return new Promise((resolve, reject) => {
       const callbackName = 'jsonp_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
@@ -306,7 +349,6 @@
       url.searchParams.append('action', action);
       url.searchParams.append('callback', callbackName);
       
-      // Tambahkan semua params
       Object.keys(params).forEach(key => {
         if (params[key] !== undefined && params[key] !== null) {
           if (typeof params[key] === 'object') {
@@ -317,7 +359,6 @@
         }
       });
       
-      // Timeout 30 detik
       const timeout = setTimeout(() => {
         if (window[callbackName]) {
           delete window[callbackName];
@@ -478,39 +519,33 @@
         document.getElementById('dashboard-stats').innerHTML = html;
       })
       .catch(() => {
-        document.getElementById('dashboard-stats').innerHTML = '<p style="color:red;">❌ Gagal memuat statistik. Periksa koneksi internet.</p>';
+        document.getElementById('dashboard-stats').innerHTML = '<p style="color:red;">❌ Gagal memuat statistik</p>';
         showToast('Gagal memuat dashboard', 'error');
       });
     
+    // Load session info (sync dengan Google Sheet)
     jsonp('getWaktuOperasional')
       .then(data => {
         const now = new Date();
         const jam = now.toTimeString().slice(0,5);
-        const hari = now.toLocaleDateString('id-ID', { weekday: 'long' });
-        const isJumat = hari === 'Jumat';
-        
-        const sesiList = [
-          { nama: 'Sesi 1 (Masuk Pagi)', mulai: '06:00', tepat: '07:30', terlambat: '08:30' },
-          { nama: 'Sesi 2 (Masuk Siang)', mulai: '12:30', tepat: '12:45', terlambat: '13:00' },
-          { nama: 'Sesi 3 (Pulang)', mulai: '13:30', tepat: '14:30', terlambat: '16:00' }
-        ];
         
         let html = '<div class="session-info">';
         let sesiAktif = null;
-        sesiList.forEach(sesi => {
-          if (isJumat && sesi.nama.includes('Sesi 2')) return;
+        
+        data.forEach(sesi => {
           const isActive = jam >= sesi.mulai && jam <= sesi.terlambat;
           if (isActive) sesiAktif = sesi;
           html += `
             <div class="session-card ${isActive ? 'active' : ''}">
-              <div class="sesi-name">${sesi.nama}</div>
+              <div class="sesi-name">${sesi.sesi}</div>
               <div class="sesi-time">🕐 ${sesi.mulai} - ${sesi.tepat} (Tepat) | ${sesi.tepat} - ${sesi.terlambat} (Terlambat)</div>
               <div class="sesi-status">${isActive ? '🟢 AKTIF' : '⏳ Tutup'}</div>
             </div>
           `;
         });
+        
         if (sesiAktif) {
-          html += `<div style="grid-column:1/-1;background:#c8e6c9;padding:10px;border-radius:6px;text-align:center;border:2px solid #2e7d32;font-size:13px;font-weight:600;">🟢 Sesi Aktif: ${sesiAktif.nama}</div>`;
+          html += `<div style="grid-column:1/-1;background:#c8e6c9;padding:10px;border-radius:6px;text-align:center;border:2px solid #2e7d32;font-size:13px;font-weight:600;">🟢 Sesi Aktif: ${sesiAktif.sesi}</div>`;
         } else {
           html += `<div style="grid-column:1/-1;background:#fff3e0;padding:10px;border-radius:6px;text-align:center;border:2px solid #f57f17;font-size:13px;">⏳ Tidak ada sesi aktif</div>`;
         }
@@ -757,22 +792,42 @@
       });
   }
   
-  // ==================== INPUT IZIN ====================
+  // ==================== INPUT IZIN (SEDERHANA) ====================
   function loadIzin(role) {
     const main = document.getElementById('main-content');
     const today = new Date().toISOString().split('T')[0];
+    const roleLabel = role === 'siswa' ? 'Siswa' : '(Siswa & Guru)';
     
     main.innerHTML = `
       <div class="card">
-        <h2 class="card-title">📝 Input Izin/Sakit ${role === 'siswa' ? 'Siswa' : '(Siswa & Guru)'}</h2>
+        <h2 class="card-title">📝 Input Izin/Sakit ${roleLabel}</h2>
+        <p style="font-size:12px;color:#666;margin-bottom:12px;">Cukup isi NISN/NIP atau Nama saja (salah satu sudah cukup)</p>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <div class="form-group"><label>🆔 NISN/NIP</label><input type="text" id="izin-id" placeholder="NISN atau NIP"></div>
-          <div class="form-group"><label>👤 Nama</label><input type="text" id="izin-nama" placeholder="Nama lengkap"></div>
+          <div class="form-group">
+            <label>🆔 NISN/NIP (opsional)</label>
+            <input type="text" id="izin-id" placeholder="NISN atau NIP">
+          </div>
+          <div class="form-group">
+            <label>👤 Nama (opsional)</label>
+            <input type="text" id="izin-nama" placeholder="Nama lengkap">
+          </div>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
-          <div class="form-group"><label>📅 Tanggal</label><input type="date" id="izin-tanggal" value="${today}"></div>
-          <div class="form-group"><label>📌 Jenis</label><select id="izin-jenis"><option value="Izin">Izin</option><option value="Sakit">Sakit</option></select></div>
-          <div class="form-group"><label>📝 Keterangan</label><input type="text" id="izin-keterangan" placeholder="Opsional"></div>
+          <div class="form-group">
+            <label>📅 Tanggal</label>
+            <input type="date" id="izin-tanggal" value="${today}">
+          </div>
+          <div class="form-group">
+            <label>📌 Jenis</label>
+            <select id="izin-jenis">
+              <option value="Izin">Izin</option>
+              <option value="Sakit">Sakit</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>📝 Keterangan</label>
+            <input type="text" id="izin-keterangan" placeholder="Opsional">
+          </div>
         </div>
         <button class="btn" onclick="submitIzin('${role}')">📝 Simpan</button>
         <div id="izin-status" style="margin-top:10px;"></div>
@@ -781,18 +836,30 @@
   }
   
   function submitIzin(role) {
-    const data = {
-      id: document.getElementById('izin-id').value.trim(),
-      nama: document.getElementById('izin-nama').value.trim(),
-      tanggal: document.getElementById('izin-tanggal').value,
-      jenis: document.getElementById('izin-jenis').value,
-      keterangan: document.getElementById('izin-keterangan').value.trim() || '-',
-      role: role
-    };
-    if (!data.id || !data.nama || !data.tanggal) {
-      showToast('Isi ID, Nama, dan Tanggal!', 'error');
+    const id = document.getElementById('izin-id').value.trim();
+    const nama = document.getElementById('izin-nama').value.trim();
+    const tanggal = document.getElementById('izin-tanggal').value;
+    const jenis = document.getElementById('izin-jenis').value;
+    const keterangan = document.getElementById('izin-keterangan').value.trim() || '-';
+    
+    // Minimal salah satu diisi
+    if (!id && !nama) {
+      showToast('Isi NISN/NIP atau Nama!', 'error');
       return;
     }
+    if (!tanggal) {
+      showToast('Pilih tanggal!', 'error');
+      return;
+    }
+    
+    const data = {
+      id: id || '-',
+      nama: nama || '-',
+      tanggal: tanggal,
+      jenis: jenis,
+      keterangan: keterangan,
+      role: role
+    };
     
     const statusEl = document.getElementById('izin-status');
     statusEl.innerHTML = '<div class="loading">Menyimpan...</div>';
@@ -804,7 +871,6 @@
         document.getElementById('izin-id').value = '';
         document.getElementById('izin-nama').value = '';
         document.getElementById('izin-keterangan').value = '';
-        document.getElementById('izin-id').focus();
       })
       .catch(() => {
         statusEl.innerHTML = `<div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;">❌ Gagal menyimpan</div>`;
@@ -893,7 +959,7 @@
       });
   }
   
-  // ==================== PENGATURAN ====================
+  // ==================== PENGATURAN (LENGKAP) ====================
   function loadPengaturan() {
     const main = document.getElementById('main-content');
     main.innerHTML = `
@@ -903,48 +969,105 @@
       </div>
     `;
     
-    jsonp('getPengaturan')
-      .then(data => {
-        let html = `
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div class="form-group"><label>🔑 PIN Guru</label><input type="text" id="set-pin-guru" value="${data.PIN_GURU || ''}" style="letter-spacing:2px;"></div>
-            <div class="form-group"><label>🔑 PIN Admin</label><input type="text" id="set-pin-admin" value="${data.PIN_ADMIN || ''}" style="letter-spacing:2px;"></div>
+    // Load semua pengaturan sekaligus
+    Promise.all([
+      jsonp('getPengaturan'),
+      jsonp('getWaktuOperasional')
+    ])
+    .then(([settings, sesiData]) => {
+      let html = '';
+      
+      // ===== PIN =====
+      html += `
+        <div class="setting-group">
+          <h4>🔑 PIN</h4>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="form-group"><label>PIN Guru</label><input type="text" id="set-pin-guru" value="${settings.PIN_GURU || ''}" style="letter-spacing:2px;"></div>
+            <div class="form-group"><label>PIN Admin</label><input type="text" id="set-pin-admin" value="${settings.PIN_ADMIN || ''}" style="letter-spacing:2px;"></div>
           </div>
-          <button class="btn" onclick="updatePIN()">💾 Update PIN</button>
-          <hr style="margin:12px 0;">
-          <h4 style="margin-bottom:8px;">📅 Hari Libur</h4>
+          <button class="btn btn-sm" onclick="updatePIN()">💾 Update PIN</button>
+        </div>
+      `;
+      
+      // ===== Sesi Aktif (Kondisional) =====
+      const activeSesi = (settings.ACTIVE_SESI || '1,2,3').split(',').map(s => s.trim());
+      html += `
+        <div class="setting-group">
+          <h4>📋 Sesi Aktif (Kondisional)</h4>
+          <p style="font-size:11px;color:#666;margin-bottom:8px;">Pilih sesi yang aktif hari ini. Secara otomatis Jumat hanya sesi 1 & 3.</p>
+          <div class="checkbox-group">
+            <label><input type="checkbox" id="sesi-1" ${activeSesi.includes('1') ? 'checked' : ''}> Sesi 1 (Masuk Pagi)</label>
+            <label><input type="checkbox" id="sesi-2" ${activeSesi.includes('2') ? 'checked' : ''}> Sesi 2 (Masuk Siang)</label>
+            <label><input type="checkbox" id="sesi-3" ${activeSesi.includes('3') ? 'checked' : ''}> Sesi 3 (Pulang)</label>
+          </div>
+          <button class="btn btn-sm btn-success" onclick="updateActiveSesi()">💾 Simpan Sesi Aktif</button>
+        </div>
+      `;
+      
+      // ===== Waktu Sesi =====
+      html += `
+        <div class="setting-group">
+          <h4>⏰ Waktu Sesi</h4>
+          <p style="font-size:11px;color:#666;margin-bottom:8px;">Format: Jam Mulai, Jam Tepat, Jam Terlambat (contoh: 06:00,07:30,08:30)</p>
+      `;
+      
+      sesiData.forEach(sesi => {
+        const num = sesi.sesi.replace('Sesi ', '');
+        html += `
+          <div style="margin-bottom:8px;">
+            <label style="font-weight:600;font-size:12px;">${sesi.sesi}</label>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:3px;">
+              <input type="time" id="sesi-${num}-mulai" value="${sesi.mulai}" style="padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+              <input type="time" id="sesi-${num}-tepat" value="${sesi.tepat}" style="padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+              <input type="time" id="sesi-${num}-terlambat" value="${sesi.terlambat}" style="padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
+            </div>
+          </div>
+        `;
+      });
+      
+      html += `
+          <button class="btn btn-sm btn-warning" onclick="updateWaktuSesi()">💾 Simpan Waktu Sesi</button>
+        </div>
+      `;
+      
+      // ===== Hari Libur =====
+      const liburList = Object.keys(settings).filter(k => k.startsWith('LIBUR_'));
+      html += `
+        <div class="setting-group">
+          <h4>📅 Hari Libur</h4>
           <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end;">
             <div class="form-group" style="flex:1;min-width:120px;"><label>Tanggal</label><input type="date" id="libur-tanggal"></div>
             <div class="form-group" style="flex:1;min-width:120px;"><label>Keterangan</label><input type="text" id="libur-keterangan" placeholder="Libur"></div>
-            <button class="btn btn-success btn-sm" onclick="addHariLibur()">➕ Tambah</button>
+            <button class="btn btn-sm btn-success" onclick="addHariLibur()">➕ Tambah</button>
           </div>
-          <div id="daftar-libur" style="margin-top:8px;"></div>
-        `;
-        document.getElementById('pengaturan-content').innerHTML = html;
-        
-        const liburList = Object.keys(data).filter(k => k.startsWith('LIBUR_'));
-        let liburHtml = '';
-        if (liburList.length > 0) {
-          liburHtml = '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">';
-          liburList.forEach(k => {
-            const tgl = k.replace('LIBUR_', '');
-            liburHtml += `<span style="background:#ffebee;padding:3px 10px;border-radius:10px;font-size:11px;border:1px solid #ffcdd2;">
-              📅 ${tgl}: ${data[k]} 
-              <span style="cursor:pointer;color:#c62828;font-weight:700;margin-left:4px;" onclick="removeLibur('${k}')">✕</span>
-            </span>`;
-          });
-          liburHtml += '</div>';
-        } else {
-          liburHtml = '<p style="color:#999;font-size:12px;">Belum ada hari libur</p>';
-        }
-        document.getElementById('daftar-libur').innerHTML = liburHtml;
-      })
-      .catch(() => {
-        document.getElementById('pengaturan-content').innerHTML = '<p style="color:red;">❌ Gagal memuat pengaturan</p>';
-        showToast('Gagal memuat pengaturan', 'error');
-      });
+          <div id="daftar-libur" style="margin-top:8px;">
+      `;
+      
+      if (liburList.length > 0) {
+        html += '<div style="display:flex;flex-wrap:wrap;gap:6px;">';
+        liburList.forEach(k => {
+          const tgl = k.replace('LIBUR_', '');
+          html += `<span style="background:#ffebee;padding:3px 10px;border-radius:10px;font-size:11px;border:1px solid #ffcdd2;">
+            📅 ${tgl}: ${settings[k]} 
+            <span style="cursor:pointer;color:#c62828;font-weight:700;margin-left:4px;" onclick="removeLibur('${k}')">✕</span>
+          </span>`;
+        });
+        html += '</div>';
+      } else {
+        html += '<p style="color:#999;font-size:12px;">Belum ada hari libur</p>';
+      }
+      
+      html += `</div></div>`;
+      
+      document.getElementById('pengaturan-content').innerHTML = html;
+    })
+    .catch(() => {
+      document.getElementById('pengaturan-content').innerHTML = '<p style="color:red;">❌ Gagal memuat pengaturan</p>';
+      showToast('Gagal memuat pengaturan', 'error');
+    });
   }
   
+  // ===== UPDATE PIN =====
   function updatePIN() {
     const pinGuru = document.getElementById('set-pin-guru').value.trim();
     const pinAdmin = document.getElementById('set-pin-admin').value.trim();
@@ -959,6 +1082,78 @@
       .catch(() => { showToast('❌ Gagal update PIN Admin', 'error'); });
   }
   
+  // ===== UPDATE SESI AKTIF =====
+  function updateActiveSesi() {
+    const selected = [];
+    if (document.getElementById('sesi-1').checked) selected.push('1');
+    if (document.getElementById('sesi-2').checked) selected.push('2');
+    if (document.getElementById('sesi-3').checked) selected.push('3');
+    
+    if (selected.length === 0) {
+      showToast('Pilih minimal 1 sesi!', 'error');
+      return;
+    }
+    
+    const value = selected.join(',');
+    jsonp('updatePengaturan', { key: 'ACTIVE_SESI', value: value })
+      .then(() => {
+        showToast('✅ Sesi aktif diupdate', 'success');
+        loadPengaturan(); // Refresh
+      })
+      .catch(() => {
+        showToast('❌ Gagal update sesi aktif', 'error');
+      });
+  }
+  
+  // ===== UPDATE WAKTU SESI =====
+  function updateWaktuSesi() {
+    const sesiData = [];
+    for (let i = 1; i <= 3; i++) {
+      const mulai = document.getElementById(`sesi-${i}-mulai`)?.value;
+      const tepat = document.getElementById(`sesi-${i}-tepat`)?.value;
+      const terlambat = document.getElementById(`sesi-${i}-terlambat`)?.value;
+      if (mulai && tepat && terlambat) {
+        sesiData.push({
+          sesi: `Sesi ${i}`,
+          mulai: mulai,
+          tepat: tepat,
+          terlambat: terlambat
+        });
+      }
+    }
+    
+    if (sesiData.length === 0) {
+      showToast('Data sesi tidak lengkap!', 'error');
+      return;
+    }
+    
+    // Simpan ke Google Sheets via API
+    jsonp('updateSesiScan', { sesiData: JSON.stringify(sesiData) })
+      .then(() => {
+        showToast('✅ Waktu sesi diupdate', 'success');
+        // Juga update di PENGATURAN sebagai backup
+        const sesiMap = {
+          1: sesiData.find(s => s.sesi === 'Sesi 1'),
+          2: sesiData.find(s => s.sesi === 'Sesi 2'),
+          3: sesiData.find(s => s.sesi === 'Sesi 3')
+        };
+        if (sesiMap[1]) {
+          jsonp('updatePengaturan', { key: 'SESI_1_JAM', value: `${sesiMap[1].mulai},${sesiMap[1].tepat},${sesiMap[1].terlambat}` });
+        }
+        if (sesiMap[2]) {
+          jsonp('updatePengaturan', { key: 'SESI_2_JAM', value: `${sesiMap[2].mulai},${sesiMap[2].tepat},${sesiMap[2].terlambat}` });
+        }
+        if (sesiMap[3]) {
+          jsonp('updatePengaturan', { key: 'SESI_3_JAM', value: `${sesiMap[3].mulai},${sesiMap[3].tepat},${sesiMap[3].terlambat}` });
+        }
+        loadPengaturan();
+      })
+      .catch(() => {
+        showToast('❌ Gagal update waktu sesi', 'error');
+      });
+  }
+  
+  // ===== HARI LIBUR =====
   function addHariLibur() {
     const tgl = document.getElementById('libur-tanggal').value;
     const ket = document.getElementById('libur-keterangan').value.trim() || 'Libur';
