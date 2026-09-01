@@ -2,232 +2,177 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Sistem Absensi Digital - SMP NEGERI 1 SOBANG</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test Koneksi - Absensi Digital</title>
   <style>
-    /* CSS untuk tampilan - gunakan CSS dari versi sebelumnya */
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; min-height: 100vh; }
-    /* ... tambahkan semua CSS dari versi sebelumnya ... */
-    .loading { display: flex; justify-content: center; align-items: center; height: 100vh; flex-direction: column; gap: 20px; }
-    .loading .spinner { width: 50px; height: 50px; border: 4px solid #e8eaf6; border-top: 4px solid #1a237e; border-radius: 50%; animation: spin 1s linear infinite; }
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f6fa;
+    }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 30px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 { color: #1a237e; }
+    .status { padding: 15px; border-radius: 8px; margin: 20px 0; }
+    .success { background: #c8e6c9; color: #2e7d32; }
+    .error { background: #ffcdd2; color: #c62828; }
+    .info { background: #e3f2fd; color: #0d47a1; }
+    .loading { text-align: center; padding: 40px; }
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #e8eaf6;
+      border-top: 4px solid #1a237e;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 20px;
+    }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .loading h2 { color: #1a237e; }
-    .loading p { color: #757575; }
+    input, button {
+      padding: 10px 15px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    button {
+      background: #1a237e;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover { background: #283593; }
+    .url-box {
+      background: #f0f0f0;
+      padding: 10px;
+      border-radius: 8px;
+      word-break: break-all;
+      font-family: monospace;
+      font-size: 12px;
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
-
-<!-- LOADING SCREEN -->
-<div id="loading-screen" class="loading">
-  <div class="spinner"></div>
-  <h2>Memuat Aplikasi...</h2>
-  <p>Sistem Absensi Digital SMP NEGERI 1 SOBANG</p>
-</div>
-
-<!-- MAIN CONTENT - Sembunyikan dulu -->
-<div id="main-app" style="display:none;">
-  <!-- Isi dengan HTML dari versi sebelumnya -->
-  <!-- Topbar, Sidebar, Content, Footer -->
-</div>
-
-<script>
-  // ==================== KONFIGURASI ====================
-  // Ganti dengan URL Google Apps Script Anda
-  const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyiLnvVvXiOzFJvqCziRzSGLcUppLjpQamQRoCRVINlvifhdGdjAxH8hSLoFVV3WlOA9w/exec';
-  
-  // ==================== FUNGSI API ====================
-  async function callAPI(action, params = {}) {
-    try {
-      const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        mode: 'cors',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: action,
-          ...params
-        })
-      });
-      
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('API Error:', error);
-      return {
-        success: false,
-        message: 'Error: ' + error.message
-      };
-    }
-  }
-  
-  // ==================== TEST KONEKSI ====================
-  async function testConnection() {
-    try {
-      const result = await callAPI('getScriptUrl');
-      console.log('Koneksi berhasil:', result);
-      return result.success;
-    } catch (error) {
-      console.error('Koneksi gagal:', error);
-      return false;
-    }
-  }
-  
-  // ==================== LOAD APLIKASI ====================
-  async function loadApp() {
-    // Cek koneksi ke Google Apps Script
-    const connected = await testConnection();
+  <div class="card">
+    <h1>🔗 Test Koneksi API</h1>
+    <p>Sistem Absensi Digital - SMP NEGERI 1 SOBANG</p>
     
-    if (connected) {
-      // Sembunyikan loading, tampilkan aplikasi
-      document.getElementById('loading-screen').style.display = 'none';
-      document.getElementById('main-app').style.display = 'block';
-      
-      // Inisialisasi aplikasi
-      initializeApp();
-    } else {
-      document.getElementById('loading-screen').innerHTML = `
-        <div style="color: #e53935; font-size: 48px; margin-bottom: 20px;">
-          <i class="fas fa-exclamation-circle"></i>
+    <div style="margin: 20px 0;">
+      <label><strong>URL Google Apps Script:</strong></label>
+      <div class="url-box" id="script-url-display">https://script.google.com/macros/s/AKfycbz-58y0cEQn5oeJsVv4ewXGeOWeWzLExiSsE52uGDf6PaO3Vu8oxpUD-_CY3iHIFYr9Bg/exec</div>
+      <button onclick="testConnection()">🧪 Test Koneksi</button>
+      <button onclick="testWithDifferentUrl()" style="background: #fb8c00;">🔄 Coba URL Lain</button>
+    </div>
+    
+    <div id="result-container">
+      <div class="info status">
+        <strong>ℹ️ Info:</strong> Klik tombol "Test Koneksi" untuk memeriksa koneksi ke Google Apps Script.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // URL Google Apps Script - GANTI DENGAN URL ANDA
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwLAH4Qrf-egcB8GOWzfMS-UG2gbph5WddKRtvUU6ozJFWFC0eNFP-FkAx_gHnS4bSmOw/exec';
+    
+    // Tampilkan URL
+    document.getElementById('script-url-display').textContent = SCRIPT_URL;
+    
+    async function testConnection() {
+      const container = document.getElementById('result-container');
+      container.innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+          <p>⏳ Menguji koneksi ke server...</p>
         </div>
-        <h2 style="color: #e53935;">Gagal Terhubung</h2>
-        <p>Pastikan URL Google Apps Script sudah benar</p>
-        <p style="font-size: 12px; margin-top: 10px; color: #9e9e9e;">
-          SCRIPT_URL: ${SCRIPT_URL}
-        </p>
-        <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 30px; background: #1a237e; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 16px;">
-          <i class="fas fa-sync"></i> Muat Ulang
-        </button>
       `;
-    }
-  }
-  
-  // ==================== INISIALISASI APLIKASI ====================
-  function initializeApp() {
-    console.log('Aplikasi berhasil dimuat!');
-    
-    // Di sini Anda bisa menambahkan semua fungsi JavaScript
-    // dari versi sebelumnya, tetapi dengan menggunakan callAPI()
-    // sebagai pengganti google.script.run
-    
-    // Contoh fungsi login yang sudah diadaptasi:
-    window.handleLogin = async function() {
-      const role = document.getElementById('login-role').value;
-      const pin = document.getElementById('login-pin').value;
       
-      if (!pin || pin.length < 4) {
-        showLoginStatus('PIN harus minimal 4 digit', 'error');
-        return;
-      }
-      
-      const result = await callAPI('login', { role, pin });
-      
-      if (result.success) {
-        // Login berhasil
-        currentUser.isLoggedIn = true;
-        currentUser.role = result.role;
-        currentUser.name = result.role.charAt(0).toUpperCase() + result.role.slice(1);
-        updateUserUI();
-        showLoginStatus(result.message, 'success');
-        document.getElementById('login-pin').value = '';
-        loadDashboard();
-      } else {
-        showLoginStatus(result.message, 'error');
-      }
-    };
-    
-    // Contoh fungsi loadDashboard yang sudah diadaptasi:
-    window.loadDashboard = async function() {
-      const result = await callAPI('getDashboardStats');
-      
-      if (result.success) {
-        const data = result.data;
-        // Update semua elemen dashboard
-        document.getElementById('guru-hadir').textContent = data.statsGuru.hadir || 0;
-        document.getElementById('guru-terlambat').textContent = data.statsGuru.terlambat || 0;
-        document.getElementById('guru-izin').textContent = data.statsGuru.izin || 0;
-        document.getElementById('guru-sakit').textContent = data.statsGuru.sakit || 0;
-        document.getElementById('guru-alpa').textContent = data.statsGuru.alpa || 0;
-        document.getElementById('guru-bolos').textContent = data.statsGuru.bolos || 0;
+      try {
+        // Test 1: GET request
+        const getResponse = await fetch(SCRIPT_URL);
+        const getData = await getResponse.json();
         
-        document.getElementById('siswa-hadir').textContent = data.statsSiswa.hadir || 0;
-        document.getElementById('siswa-terlambat').textContent = data.statsSiswa.terlambat || 0;
-        document.getElementById('siswa-izin').textContent = data.statsSiswa.izin || 0;
-        document.getElementById('siswa-sakit').textContent = data.statsSiswa.sakit || 0;
-        document.getElementById('siswa-alpa').textContent = data.statsSiswa.alpa || 0;
-        document.getElementById('siswa-bolos').textContent = data.statsSiswa.bolos || 0;
-        
-        updateCurrentSession(data.currentSession);
-        updateTodayTable(data.todayAbsensi);
-      } else {
-        console.error('Gagal load dashboard:', result.message);
-      }
-    };
-    
-    // Fungsi update table
-    function updateTodayTable(absensi) {
-      const container = document.getElementById('dashboard-today-table');
-      if (absensi && absensi.length > 0) {
-        let html = `<table>
-          <thead><tr><th>No</th><th>Nama</th><th>Role</th><th>Waktu Scan</th><th>Sesi</th><th>Status</th></tr></thead><tbody>`;
-        absensi.forEach((row, index) => {
-          const statusClass = row.status.toLowerCase();
-          html += `<tr>
-            <td>${index + 1}</td>
-            <td>${row.nama}</td>
-            <td><span class="role-badge ${row.role}">${row.role}</span></td>
-            <td>${row.waktu}</td>
-            <td>${row.sesi}</td>
-            <td><span class="status-badge ${statusClass}">${row.status}</span></td>
-          </tr>`;
+        // Test 2: POST request with test action
+        const postResponse = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            action: 'testConnection'
+          })
         });
-        html += `</tbody></table>`;
-        container.innerHTML = html;
-      } else {
-        container.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>Belum ada data absensi hari ini</p></div>`;
-      }
-    }
-    
-    // Fungsi update current session
-    function updateCurrentSession(sessionData) {
-      const container = document.getElementById('session-grid');
-      if (!sessionData || sessionData.isHoliday) {
-        container.innerHTML = `<div class="alert alert-info show" style="grid-column:1/-1;">${sessionData?.message || 'Tidak ada jadwal'}</div>`;
-        return;
-      }
-      
-      let html = '';
-      sessionData.sessions.forEach(sesi => {
-        let statusClass = 'waiting';
-        if (sesi.status.includes('🟢')) statusClass = 'active-green';
-        else if (sesi.status.includes('🟡')) statusClass = 'active-yellow';
-        else if (sesi.status.includes('🔴')) statusClass = 'done';
         
-        html += `
-          <div class="session-item">
-            <div class="sesi-name">${sesi.name}</div>
-            <div class="sesi-time">⏰ ${sesi.start} - ${sesi.end}</div>
-            <div class="sesi-status ${statusClass}">${sesi.status}</div>
+        const postData = await postResponse.json();
+        
+        container.innerHTML = `
+          <div class="success status">
+            <strong>✅ Koneksi Berhasil!</strong>
+            <p>Server merespons dengan baik.</p>
+          </div>
+          <div style="background:#f5f5f5;padding:15px;border-radius:8px;margin-top:10px;">
+            <h3>📊 Hasil Response:</h3>
+            <p><strong>GET Response:</strong></p>
+            <pre style="background:#fff;padding:10px;border-radius:4px;overflow-x:auto;">${JSON.stringify(getData, null, 2)}</pre>
+            <p><strong>POST Response (testConnection):</strong></p>
+            <pre style="background:#fff;padding:10px;border-radius:4px;overflow-x:auto;">${JSON.stringify(postData, null, 2)}</pre>
+          </div>
+          <div style="margin-top:15px;padding:15px;background:#e8f5e9;border-radius:8px;">
+            <strong>✅ Status: </strong> Koneksi berhasil! Anda dapat menggunakan aplikasi.
           </div>
         `;
-      });
-      container.innerHTML = html;
+      } catch (error) {
+        container.innerHTML = `
+          <div class="error status">
+            <strong>❌ Gagal Terhubung</strong>
+            <p>Error: ${error.message}</p>
+          </div>
+          <div style="background:#fff3e0;padding:15px;border-radius:8px;margin-top:10px;">
+            <h3>🔍 Troubleshooting:</h3>
+            <ol>
+              <li>Pastikan URL Google Apps Script sudah benar</li>
+              <li>Pastikan script sudah di-deploy dengan akses "Anyone"</li>
+              <li>Periksa konsol browser untuk error detail</li>
+              <li>Coba buka URL script di browser untuk test</li>
+            </ol>
+            <p style="margin-top:10px;">
+              <a href="${SCRIPT_URL}" target="_blank" style="color:#1a237e;">
+                📎 Buka URL Script di tab baru
+              </a>
+            </p>
+          </div>
+        `;
+        console.error('Connection Error:', error);
+      }
     }
     
-    // Jalankan load dashboard pertama kali
-    loadDashboard();
-  }
-  
-  // ==================== JALANKAN APLIKASI ====================
-  // Tunggu DOM siap
-  document.addEventListener('DOMContentLoaded', function() {
-    // Setelah 1 detik, mulai load aplikasi
-    setTimeout(loadApp, 1000);
-  });
-</script>
-
+    function testWithDifferentUrl() {
+      const newUrl = prompt('Masukkan URL Google Apps Script yang baru:', SCRIPT_URL);
+      if (newUrl) {
+        window.location.href = window.location.pathname + '?url=' + encodeURIComponent(newUrl);
+      }
+    }
+    
+    // Auto test on load
+    window.addEventListener('DOMContentLoaded', function() {
+      // Cek parameter URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const customUrl = urlParams.get('url');
+      if (customUrl) {
+        document.getElementById('script-url-display').textContent = decodeURIComponent(customUrl);
+      }
+      
+      // Auto test after 2 seconds
+      setTimeout(testConnection, 2000);
+    });
+  </script>
 </body>
 </html>
