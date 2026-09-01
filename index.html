@@ -391,7 +391,7 @@
 
 <script>
   // ==================== KONFIGURASI ====================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbwMelaWKXtU6mHrjFUZtjh3VIwRycnkr9Nztfhdsb6nZv3F4F9NsBg5jyKnxHsZNQGayQ/exec'; // Ganti dengan URL Web App Anda
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzkzGaJ8B0EhMgj9qF0nOOpyHrH1t0B1MfmD21hNEW2zKQCV4atZQdCOwcv6kyZjsNQ1g/exec'; // Ganti dengan URL Web App Anda
   
   // ==================== GLOBAL ====================
   let currentUser = null;
@@ -626,48 +626,49 @@
     
 
       // ===== BAGIAN SESSION INFO DI DASHBOARD =====
-      jsonp('getWaktuOperasional')
-        .then(data => {
-          const now = new Date();
-          const jam = now.toTimeString().slice(0,5);
+        jsonp('getWaktuOperasional')
+    .then(data => {
+      const now = new Date();
+      const jam = now.toTimeString().slice(0,5);
+      
+      let html = '<div class="session-info">';
+      let sesiAktif = null;
+      
+      if (data && data.length > 0) {
+        data.forEach(sesi => {
+          // Pastikan waktu dalam format HH:MM
+          const mulai = sesi.mulai && sesi.mulai !== '--:--' ? sesi.mulai.slice(0,5) : '--:--';
+          const tepat = sesi.tepat && sesi.tepat !== '--:--' ? sesi.tepat.slice(0,5) : '--:--';
+          const terlambat = sesi.terlambat && sesi.terlambat !== '--:--' ? sesi.terlambat.slice(0,5) : '--:--';
           
-          let html = '<div class="session-info">';
-          let sesiAktif = null;
+          // Cek apakah sesi aktif
+          const isActive = (mulai !== '--:--' && terlambat !== '--:--' && jam >= mulai && jam <= terlambat);
+          if (isActive) sesiAktif = sesi;
           
-          if (data && data.length > 0) {
-            data.forEach(sesi => {
-              // Format waktu dengan benar
-              const mulai = sesi.mulai ? sesi.mulai.toString().slice(0,5) : '--:--';
-              const tepat = sesi.tepat ? sesi.tepat.toString().slice(0,5) : '--:--';
-              const terlambat = sesi.terlambat ? sesi.terlambat.toString().slice(0,5) : '--:--';
-              
-              const isActive = jam >= mulai && jam <= terlambat;
-              if (isActive) sesiAktif = sesi;
-              
-              html += `
-                <div class="session-card ${isActive ? 'active' : ''}">
-                  <div class="sesi-name">${sesi.sesi || 'Sesi'}</div>
-                  <div class="sesi-time">🕐 ${mulai} - ${tepat} (Tepat) | ${tepat} - ${terlambat} (Terlambat)</div>
-                  <div class="sesi-status">${isActive ? '🟢 AKTIF' : '⏳ Tutup'}</div>
-                </div>
-              `;
-            });
-          } else {
-            html += `<div style="grid-column:1/-1;text-align:center;color:#999;padding:10px;">⚠️ Belum ada sesi scan</div>`;
-          }
-          
-          if (sesiAktif) {
-            html += `<div style="grid-column:1/-1;background:#c8e6c9;padding:10px;border-radius:6px;text-align:center;border:2px solid #2e7d32;font-size:13px;font-weight:600;">🟢 Sesi Aktif: ${sesiAktif.sesi}</div>`;
-          } else {
-            html += `<div style="grid-column:1/-1;background:#fff3e0;padding:10px;border-radius:6px;text-align:center;border:2px solid #f57f17;font-size:13px;">⏳ Tidak ada sesi aktif</div>`;
-          }
-          html += '</div>';
-          document.getElementById('session-info').innerHTML = html;
-        })
-        .catch((err) => {
-          document.getElementById('session-info').innerHTML = '<p style="color:red;">❌ Gagal memuat jadwal: ' + (err.message || 'unknown') + '</p>';
-          console.error(err);
+          html += `
+            <div class="session-card ${isActive ? 'active' : ''}">
+              <div class="sesi-name">${sesi.sesi || 'Sesi'}</div>
+              <div class="sesi-time">🕐 ${mulai} - ${tepat} (Tepat) | ${tepat} - ${terlambat} (Terlambat)</div>
+              <div class="sesi-status">${isActive ? '🟢 AKTIF' : '⏳ Tutup'}</div>
+            </div>
+          `;
         });
+      } else {
+        html += `<div style="grid-column:1/-1;text-align:center;color:#999;padding:10px;">⚠️ Belum ada sesi scan. Atur di Pengaturan.</div>`;
+      }
+      
+      if (sesiAktif) {
+        html += `<div style="grid-column:1/-1;background:#c8e6c9;padding:10px;border-radius:6px;text-align:center;border:2px solid #2e7d32;font-size:13px;font-weight:600;">🟢 Sesi Aktif: ${sesiAktif.sesi} (${sesiAktif.mulai} - ${sesiAktif.terlambat})</div>`;
+      } else {
+        html += `<div style="grid-column:1/-1;background:#fff3e0;padding:10px;border-radius:6px;text-align:center;border:2px solid #f57f17;font-size:13px;">⏳ Tidak ada sesi aktif saat ini</div>`;
+      }
+      html += '</div>';
+      document.getElementById('session-info').innerHTML = html;
+    })
+    .catch((err) => {
+      document.getElementById('session-info').innerHTML = '<p style="color:red;">❌ Gagal memuat jadwal</p>';
+      console.error(err);
+    });
     
     // Load rekap hari ini
     jsonp('getRekapHariIni')
