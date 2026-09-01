@@ -287,12 +287,11 @@
 <!-- FOOTER -->
 <div class="footer">© 2026 SMP NEGERI 1 SOBANG | Absensi Online v2.5</div>
 
-<script>
-  // ==================== KONFIGURASI ====================
+
  <script>
   // ==================== KONFIGURASI ====================
   var API_URL = 'https://script.google.com/macros/s/AKfycbxc7_NIAuV6T38kqqmBI-qkz4JmpdO9orxtHpUJfkGDhnQzDpT5V-6lmZnqEZm3gBpjoQ/exec'; // Ganti dengan URL Web App Anda
-  
+ 
   // ==================== GLOBAL ====================
   var currentUser = null;
   var currentPage = 'dashboard';
@@ -302,14 +301,18 @@
   // ==================== CLOCK ====================
   function updateClock() {
     var now = new Date();
-    document.getElementById('clock').textContent = '⏰ ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    var el = document.getElementById('clock');
+    if (el) {
+      el.textContent = '⏰ ' + now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+    }
   }
   setInterval(updateClock, 1000);
   updateClock();
   
   // ==================== SIDEBAR ====================
   function toggleSidebar() {
-    document.getElementById('sidebar').classList.toggle('open');
+    var sidebar = document.getElementById('sidebar');
+    if (sidebar) sidebar.classList.toggle('open');
   }
   
   // ==================== MENU VISIBILITY ====================
@@ -329,16 +332,20 @@
       el.classList.toggle('hidden', !showAdminMenu);
     });
     
-    document.getElementById('menu-login').classList.toggle('hidden', isLoggedIn);
-    document.getElementById('menu-logout').classList.toggle('hidden', !isLoggedIn);
+    var loginMenu = document.getElementById('menu-login');
+    var logoutMenu = document.getElementById('menu-logout');
+    if (loginMenu) loginMenu.classList.toggle('hidden', isLoggedIn);
+    if (logoutMenu) logoutMenu.classList.toggle('hidden', !isLoggedIn);
     
     var badge = document.getElementById('userBadge');
-    if (isLoggedIn) {
-      var roleLabel = isAdmin ? '👨‍💼 Admin' : '👨‍🏫 Guru';
-      badge.textContent = roleLabel + ' ' + (currentUser.nama || '');
-      badge.classList.add('show');
-    } else {
-      badge.classList.remove('show');
+    if (badge) {
+      if (isLoggedIn) {
+        var roleLabel = isAdmin ? '👨‍💼 Admin' : '👨‍🏫 Guru';
+        badge.textContent = roleLabel + ' ' + (currentUser.nama || '');
+        badge.classList.add('show');
+      } else {
+        badge.classList.remove('show');
+      }
     }
   }
   
@@ -404,6 +411,7 @@
   function loadPage(page) {
     currentPage = page;
     var main = document.getElementById('main-content');
+    if (!main) return;
     
     document.querySelectorAll('.menu-item').forEach(function(el) {
       el.classList.remove('active');
@@ -413,7 +421,10 @@
       }
     });
     
-    if (window.innerWidth <= 768) document.getElementById('sidebar').classList.remove('open');
+    if (window.innerWidth <= 768) {
+      var sidebar = document.getElementById('sidebar');
+      if (sidebar) sidebar.classList.remove('open');
+    }
     if (isScanning) stopScanner();
     
     switch(page) {
@@ -434,6 +445,7 @@
   // ==================== LOGIN ====================
   function loadLogin() {
     var main = document.getElementById('main-content');
+    if (!main) return;
     main.innerHTML = `
       <div style="max-width:360px;margin:20px auto;">
         <div class="card">
@@ -456,7 +468,9 @@
   }
   
   function doLogin() {
-    var pin = document.getElementById('login-pin').value.trim();
+    var pinEl = document.getElementById('login-pin');
+    if (!pinEl) return;
+    var pin = pinEl.value.trim();
     if (!pin) { showToast('Masukkan PIN!', 'error'); return; }
     
     jsonp('verifyLogin', { role: 'all', pin: pin })
@@ -465,21 +479,27 @@
           currentUser = { role: result.role, pin: pin, nama: result.nama || '' };
           updateMenuVisibility();
           showToast('✅ Login sebagai ' + (result.role === 'guru' ? 'Guru' : 'Admin') + ' berhasil!', 'success');
-          document.getElementById('login-status').innerHTML = 
-            '<div style="background:#e8f5e9;padding:10px;border-radius:6px;color:#2e7d32;font-weight:600;">✅ Login berhasil!</div>';
+          var statusEl = document.getElementById('login-status');
+          if (statusEl) {
+            statusEl.innerHTML = '<div style="background:#e8f5e9;padding:10px;border-radius:6px;color:#2e7d32;font-weight:600;">✅ Login berhasil!</div>';
+          }
           setTimeout(function() { loadPage('dashboard'); }, 800);
         } else {
-          document.getElementById('login-status').innerHTML = 
-            '<div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;font-weight:600;">❌ ' + result.message + '</div>';
+          var statusEl = document.getElementById('login-status');
+          if (statusEl) {
+            statusEl.innerHTML = '<div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;font-weight:600;">❌ ' + result.message + '</div>';
+          }
           showToast('❌ ' + result.message, 'error');
-          document.getElementById('login-pin').value = '';
-          document.getElementById('login-pin').focus();
+          var pinEl2 = document.getElementById('login-pin');
+          if (pinEl2) { pinEl2.value = ''; pinEl2.focus(); }
         }
       })
       .catch(function(err) {
         showToast('Gagal koneksi ke server: ' + err.message, 'error');
-        document.getElementById('login-status').innerHTML = 
-          '<div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;">❌ Gagal terhubung ke server</div>';
+        var statusEl = document.getElementById('login-status');
+        if (statusEl) {
+          statusEl.innerHTML = '<div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;">❌ Gagal terhubung ke server</div>';
+        }
       });
   }
   
@@ -493,6 +513,8 @@
   // ==================== DASHBOARD ====================
   function loadDashboard() {
     var main = document.getElementById('main-content');
+    if (!main) return;
+    
     main.innerHTML = `
       <div class="card">
         <h2 class="card-title">📊 Dashboard</h2>
@@ -511,8 +533,10 @@
     // Load stats
     jsonp('getDashboardStats')
       .then(function(data) {
+        var container = document.getElementById('dashboard-stats');
+        if (!container) return;
         if (!data || typeof data !== 'object') {
-          document.getElementById('dashboard-stats').innerHTML = '<p style="color:red;">❌ Data tidak valid</p>';
+          container.innerHTML = '<p style="color:red;">❌ Data tidak valid</p>';
           return;
         }
         var html = `
@@ -541,15 +565,20 @@
             </div>
           </div>
         `;
-        document.getElementById('dashboard-stats').innerHTML = html;
+        container.innerHTML = html;
       })
       .catch(function(err) {
-        document.getElementById('dashboard-stats').innerHTML = '<p style="color:red;">❌ Gagal memuat statistik: ' + (err.message || 'unknown') + '</p>';
+        var container = document.getElementById('dashboard-stats');
+        if (container) {
+          container.innerHTML = '<p style="color:red;">❌ Gagal memuat statistik: ' + (err.message || 'unknown') + '</p>';
+        }
       });
     
     // Load session info
     jsonp('getWaktuOperasional')
       .then(function(data) {
+        var container = document.getElementById('session-info');
+        if (!container) return;
         var now = new Date();
         var jam = now.toTimeString().slice(0,5);
         
@@ -583,16 +612,20 @@
           html += '<div style="grid-column:1/-1;background:#fff3e0;padding:10px;border-radius:6px;text-align:center;border:2px solid #f57f17;font-size:13px;">⏳ Tidak ada sesi aktif saat ini</div>';
         }
         html += '</div>';
-        document.getElementById('session-info').innerHTML = html;
+        container.innerHTML = html;
       })
       .catch(function(err) {
-        document.getElementById('session-info').innerHTML = '<p style="color:red;">❌ Gagal memuat jadwal: ' + (err.message || 'unknown') + '</p>';
+        var container = document.getElementById('session-info');
+        if (container) {
+          container.innerHTML = '<p style="color:red;">❌ Gagal memuat jadwal: ' + (err.message || 'unknown') + '</p>';
+        }
       });
     
     // Load rekap hari ini
     jsonp('getRekapHariIni')
       .then(function(data) {
         var container = document.getElementById('rekap-hari-ini');
+        if (!container) return;
         var sesiNames = data.sesiNames || ['Sesi 1', 'Sesi 2', 'Sesi 3'];
         
         var html = '';
@@ -640,7 +673,10 @@
         container.innerHTML = html;
       })
       .catch(function(err) {
-        document.getElementById('rekap-hari-ini').innerHTML = '<p style="color:red;">❌ Gagal memuat rekap: ' + (err.message || 'unknown') + '</p>';
+        var container = document.getElementById('rekap-hari-ini');
+        if (container) {
+          container.innerHTML = '<p style="color:red;">❌ Gagal memuat rekap: ' + (err.message || 'unknown') + '</p>';
+        }
       });
   }
   
@@ -661,6 +697,7 @@
   // ==================== ORANG TUA ====================
   function loadOrangTua() {
     var main = document.getElementById('main-content');
+    if (!main) return;
     var today = new Date().toISOString().split('T')[0];
     var monthAgo = new Date();
     monthAgo.setMonth(monthAgo.getMonth() - 1);
@@ -690,12 +727,18 @@
   }
   
   function cekAbsensiOrtu() {
-    var nisn = document.getElementById('ortu-nisn').value.trim();
-    var tglMulai = document.getElementById('ortu-tgl-mulai').value;
-    var tglSelesai = document.getElementById('ortu-tgl-selesai').value;
+    var nisnEl = document.getElementById('ortu-nisn');
+    var tglMulaiEl = document.getElementById('ortu-tgl-mulai');
+    var tglSelesaiEl = document.getElementById('ortu-tgl-selesai');
+    if (!nisnEl || !tglMulaiEl || !tglSelesaiEl) return;
+    
+    var nisn = nisnEl.value.trim();
+    var tglMulai = tglMulaiEl.value;
+    var tglSelesai = tglSelesaiEl.value;
     if (!nisn) { showToast('Masukkan NISN!', 'error'); return; }
     
     var hasil = document.getElementById('ortu-hasil');
+    if (!hasil) return;
     hasil.innerHTML = '<div class="loading"><span class="spinner"></span> Mencari data...</div>';
     
     jsonp('cekAbsensiSiswa', { nisn: nisn, tglMulai: tglMulai, tglSelesai: tglSelesai })
@@ -721,6 +764,7 @@
   // ==================== SCAN QR ====================
   function loadScan(role) {
     var main = document.getElementById('main-content');
+    if (!main) return;
     var title = role === 'siswa' ? '📷 Scan QR Siswa' : '📷 Scan QR (Siswa & Guru)';
     
     main.innerHTML = `
@@ -749,10 +793,10 @@
     if (scannerInstance) stopScanner();
     
     var statusEl = document.getElementById('scan-status');
-    statusEl.textContent = '📷 Memulai kamera... Mohon izinkan akses kamera';
+    if (statusEl) statusEl.textContent = '📷 Memulai kamera... Mohon izinkan akses kamera';
     
     if (typeof Html5Qrcode === 'undefined') {
-      statusEl.textContent = '❌ Library scanner belum dimuat. Coba refresh halaman.';
+      if (statusEl) statusEl.textContent = '❌ Library scanner belum dimuat. Coba refresh halaman.';
       showToast('Library scanner belum dimuat', 'error');
       return;
     }
@@ -764,22 +808,22 @@
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
         function(decodedText) {
-          statusEl.textContent = '✅ QR Code terdeteksi!';
+          if (statusEl) statusEl.textContent = '✅ QR Code terdeteksi!';
           handleScanResult(decodedText, role);
         },
         function() {}
       ).then(function() {
-        statusEl.textContent = '📷 Kamera aktif. Arahkan ke QR Code';
+        if (statusEl) statusEl.textContent = '📷 Kamera aktif. Arahkan ke QR Code';
         isScanning = true;
         showToast('📷 Kamera aktif', 'success');
       }).catch(function(err) {
-        statusEl.textContent = '❌ Gagal akses kamera: ' + err.message;
+        if (statusEl) statusEl.textContent = '❌ Gagal akses kamera: ' + err.message;
         showToast('❌ Gagal akses kamera', 'error');
         scannerInstance = null;
       });
       
     } catch (err) {
-      statusEl.textContent = '❌ Error: ' + err.message;
+      if (statusEl) statusEl.textContent = '❌ Error: ' + err.message;
       showToast('Error: ' + err.message, 'error');
       scannerInstance = null;
     }
@@ -805,6 +849,7 @@
   
   function handleScanResult(barcodeData, role) {
     var resultEl = document.getElementById('scan-result');
+    if (!resultEl) return;
     resultEl.innerHTML = '<div class="loading"><span class="spinner"></span> Memproses...</div>';
     
     jsonp('scanQR', { barcodeData: barcodeData, role: role })
@@ -826,7 +871,8 @@
           `;
           showToast('❌ ' + result.message, 'error');
         }
-        document.getElementById('scan-status').textContent = '📷 Siap scan lagi';
+        var statusEl = document.getElementById('scan-status');
+        if (statusEl) statusEl.textContent = '📷 Siap scan lagi';
       })
       .catch(function(err) {
         resultEl.innerHTML = '<div style="background:#ffebee;padding:12px;border-radius:6px;color:#c62828;">❌ Gagal memproses scan: ' + (err.message || 'unknown') + '</div>';
@@ -837,6 +883,7 @@
   // ==================== INPUT IZIN ====================
   function loadIzin(role) {
     var main = document.getElementById('main-content');
+    if (!main) return;
     var today = new Date().toISOString().split('T')[0];
     var roleLabel = role === 'siswa' ? 'Siswa' : '(Siswa & Guru)';
     
@@ -878,11 +925,20 @@
   }
   
   function submitIzin(role) {
-    var id = document.getElementById('izin-id').value.trim();
-    var nama = document.getElementById('izin-nama').value.trim();
-    var tanggal = document.getElementById('izin-tanggal').value;
-    var jenis = document.getElementById('izin-jenis').value;
-    var keterangan = document.getElementById('izin-keterangan').value.trim() || '-';
+    var idEl = document.getElementById('izin-id');
+    var namaEl = document.getElementById('izin-nama');
+    var tanggalEl = document.getElementById('izin-tanggal');
+    var jenisEl = document.getElementById('izin-jenis');
+    var ketEl = document.getElementById('izin-keterangan');
+    var statusEl = document.getElementById('izin-status');
+    
+    if (!idEl || !namaEl || !tanggalEl || !jenisEl || !ketEl || !statusEl) return;
+    
+    var id = idEl.value.trim();
+    var nama = namaEl.value.trim();
+    var tanggal = tanggalEl.value;
+    var jenis = jenisEl.value;
+    var keterangan = ketEl.value.trim() || '-';
     
     if (!id && !nama) {
       showToast('❌ Isi NISN/NIP atau Nama!', 'error');
@@ -902,7 +958,6 @@
       role: role
     };
     
-    var statusEl = document.getElementById('izin-status');
     statusEl.innerHTML = '<div class="loading"><span class="spinner"></span> Menyimpan...</div>';
     
     jsonp('inputIzin', { data: JSON.stringify(data) })
@@ -910,9 +965,9 @@
         if (result.success) {
           statusEl.innerHTML = '<div style="background:#e8f5e9;padding:10px;border-radius:6px;color:#2e7d32;font-weight:600;">✅ ' + result.message + '</div>';
           showToast('✅ ' + result.message, 'success');
-          document.getElementById('izin-id').value = '';
-          document.getElementById('izin-nama').value = '';
-          document.getElementById('izin-keterangan').value = '';
+          idEl.value = '';
+          namaEl.value = '';
+          ketEl.value = '';
         } else {
           statusEl.innerHTML = '<div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;font-weight:600;">❌ ' + result.message + '</div>';
           showToast('❌ ' + result.message, 'error');
@@ -927,6 +982,7 @@
   // ==================== REKAP ====================
   function loadRekap(role) {
     var main = document.getElementById('main-content');
+    if (!main) return;
     var today = new Date();
     var firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
     
@@ -948,17 +1004,22 @@
   }
   
   function loadRekapData(role) {
-    var tglMulai = document.getElementById('rekap-tgl-mulai').value;
-    var tglSelesai = document.getElementById('rekap-tgl-selesai').value;
+    var tglMulaiEl = document.getElementById('rekap-tgl-mulai');
+    var tglSelesaiEl = document.getElementById('rekap-tgl-selesai');
+    var hasilEl = document.getElementById('rekap-hasil');
+    
+    if (!tglMulaiEl || !tglSelesaiEl || !hasilEl) return;
+    
+    var tglMulai = tglMulaiEl.value;
+    var tglSelesai = tglSelesaiEl.value;
     if (!tglMulai || !tglSelesai) { showToast('Pilih periode!', 'error'); return; }
     
-    var hasil = document.getElementById('rekap-hasil');
-    hasil.innerHTML = '<div class="loading"><span class="spinner"></span> Memuat data...</div>';
+    hasilEl.innerHTML = '<div class="loading"><span class="spinner"></span> Memuat data...</div>';
     
     jsonp('getRekap', { role: role, tglMulai: tglMulai, tglSelesai: tglSelesai })
       .then(function(data) {
         if (!data || !data.data || data.data.length === 0) {
-          hasil.innerHTML = '<p style="color:orange;padding:10px;">⚠️ Tidak ada data untuk periode ini</p>';
+          hasilEl.innerHTML = '<p style="color:orange;padding:10px;">⚠️ Tidak ada data untuk periode ini</p>';
           return;
         }
         var html = `
@@ -979,17 +1040,21 @@
           html += '</tr>';
         });
         html += '</table></div>';
-        hasil.innerHTML = html;
+        hasilEl.innerHTML = html;
       })
       .catch(function(err) {
-        hasil.innerHTML = '<p style="color:red;">❌ Gagal memuat data: ' + (err.message || 'unknown') + '</p>';
+        hasilEl.innerHTML = '<p style="color:red;">❌ Gagal memuat data: ' + (err.message || 'unknown') + '</p>';
         showToast('Gagal memuat rekap', 'error');
       });
   }
   
   function exportRekap(role, format) {
-    var tglMulai = document.getElementById('rekap-tgl-mulai').value;
-    var tglSelesai = document.getElementById('rekap-tgl-selesai').value;
+    var tglMulaiEl = document.getElementById('rekap-tgl-mulai');
+    var tglSelesaiEl = document.getElementById('rekap-tgl-selesai');
+    if (!tglMulaiEl || !tglSelesaiEl) return;
+    
+    var tglMulai = tglMulaiEl.value;
+    var tglSelesai = tglSelesaiEl.value;
     if (!tglMulai || !tglSelesai) { showToast('Pilih periode!', 'error'); return; }
     
     showToast('⏳ Memproses...', 'info');
@@ -1019,6 +1084,7 @@
   // ==================== PENGATURAN ====================
   function loadPengaturan() {
     var main = document.getElementById('main-content');
+    if (!main) return;
     main.innerHTML = `
       <div class="card">
         <h2 class="card-title">⚙️ Pengaturan</h2>
@@ -1031,6 +1097,8 @@
       jsonp('getWaktuOperasional')
     ])
     .then(function(results) {
+      var container = document.getElementById('pengaturan-content');
+      if (!container) return;
       var settings = results[0] || {};
       var sesiData = results[1] || [];
       
@@ -1131,17 +1199,24 @@
       
       html += '</div></div>';
       
-      document.getElementById('pengaturan-content').innerHTML = html;
+      container.innerHTML = html;
     })
     .catch(function(err) {
-      document.getElementById('pengaturan-content').innerHTML = '<p style="color:red;">❌ Gagal memuat pengaturan: ' + (err.message || 'unknown') + '</p>';
+      var container = document.getElementById('pengaturan-content');
+      if (container) {
+        container.innerHTML = '<p style="color:red;">❌ Gagal memuat pengaturan: ' + (err.message || 'unknown') + '</p>';
+      }
       showToast('Gagal memuat pengaturan', 'error');
     });
   }
   
   function updatePIN() {
-    var pinGuru = document.getElementById('set-pin-guru').value.trim();
-    var pinAdmin = document.getElementById('set-pin-admin').value.trim();
+    var pinGuruEl = document.getElementById('set-pin-guru');
+    var pinAdminEl = document.getElementById('set-pin-admin');
+    if (!pinGuruEl || !pinAdminEl) return;
+    
+    var pinGuru = pinGuruEl.value.trim();
+    var pinAdmin = pinAdminEl.value.trim();
     if (!pinGuru || !pinAdmin) { showToast('PIN tidak boleh kosong!', 'error'); return; }
     
     jsonp('updatePengaturan', { key: 'PIN_GURU', value: pinGuru })
@@ -1154,10 +1229,15 @@
   }
   
   function updateActiveSesi() {
+    var sesi1 = document.getElementById('sesi-1');
+    var sesi2 = document.getElementById('sesi-2');
+    var sesi3 = document.getElementById('sesi-3');
+    if (!sesi1 || !sesi2 || !sesi3) return;
+    
     var selected = [];
-    if (document.getElementById('sesi-1').checked) selected.push('1');
-    if (document.getElementById('sesi-2').checked) selected.push('2');
-    if (document.getElementById('sesi-3').checked) selected.push('3');
+    if (sesi1.checked) selected.push('1');
+    if (sesi2.checked) selected.push('2');
+    if (sesi3.checked) selected.push('3');
     
     if (selected.length === 0) {
       showToast('❌ Pilih minimal 1 sesi!', 'error');
@@ -1185,9 +1265,14 @@
   function updateWaktuSesi() {
     var sesiData = [];
     for (var i = 1; i <= 3; i++) {
-      var mulai = document.getElementById('sesi-' + i + '-mulai')?.value;
-      var tepat = document.getElementById('sesi-' + i + '-tepat')?.value;
-      var terlambat = document.getElementById('sesi-' + i + '-terlambat')?.value;
+      var mulaiEl = document.getElementById('sesi-' + i + '-mulai');
+      var tepatEl = document.getElementById('sesi-' + i + '-tepat');
+      var terlambatEl = document.getElementById('sesi-' + i + '-terlambat');
+      if (!mulaiEl || !tepatEl || !terlambatEl) continue;
+      
+      var mulai = mulaiEl.value;
+      var tepat = tepatEl.value;
+      var terlambat = terlambatEl.value;
       
       if (mulai && tepat && terlambat) {
         var formatTime = function(val) {
@@ -1241,15 +1326,19 @@
   }
   
   function addHariLibur() {
-    var tgl = document.getElementById('libur-tanggal').value;
-    var ket = document.getElementById('libur-keterangan').value.trim() || 'Libur';
+    var tglEl = document.getElementById('libur-tanggal');
+    var ketEl = document.getElementById('libur-keterangan');
+    if (!tglEl || !ketEl) return;
+    
+    var tgl = tglEl.value;
+    var ket = ketEl.value.trim() || 'Libur';
     if (!tgl) { showToast('Pilih tanggal!', 'error'); return; }
     
     jsonp('updatePengaturan', { key: 'LIBUR_' + tgl, value: ket })
       .then(function() {
         showToast('✅ Hari libur ditambahkan', 'success');
-        document.getElementById('libur-tanggal').value = '';
-        document.getElementById('libur-keterangan').value = '';
+        tglEl.value = '';
+        ketEl.value = '';
         loadPengaturan();
       })
       .catch(function(err) {
