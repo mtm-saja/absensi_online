@@ -290,7 +290,7 @@
 
  <script>
   // ==================== KONFIGURASI ====================
-  var API_URL = 'https://script.google.com/macros/s/AKfycbz6halH5vr40FkhbQR17JMioctIo09zDdV1sg9bL-NlpiCptLe-HWdE3shIJbXjrWIYjw/exec'; // Ganti dengan URL Web App Anda
+  var API_URL = 'https://script.google.com/macros/s/AKfycbyQv0jz1mA1gihNxYc9TMkW9QbBum3C3vK9Z1GnVx4b2aiuPpiZ5aTuAaGWXutdzywBdA/exec'; // Ganti dengan URL Web App Anda
  
   // ==================== GLOBAL ====================
   var currentUser = null;
@@ -511,6 +511,7 @@
   }
   
   // ==================== DASHBOARD ====================
+ 
   function loadDashboard() {
     var main = document.getElementById('main-content');
     if (!main) return;
@@ -622,7 +623,7 @@
         }
       });
     
-    // Load rekap hari ini dengan status global
+    // Load rekap hari ini (hanya tampil saat sesi aktif)
     jsonp('getRekapHariIni')
       .then(function(data) {
         var container = document.getElementById('rekap-hari-ini');
@@ -630,6 +631,7 @@
         if (!container) return;
         
         var sesiNames = data.sesiNames || ['Sesi 1', 'Sesi 2', 'Sesi 3'];
+        var isSesiAktif = data.isSesiAktif || false;
         
         // Tampilkan status global
         if (statusContainer) {
@@ -639,17 +641,27 @@
             statusContainer.style.background = '#fff3e0';
             statusContainer.style.border = '2px solid #f57f17';
             statusContainer.style.color = '#e65100';
+            container.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">⏳ ' + statusSesi.pesan + ' Data akan muncul saat sesi berlangsung.</p>';
+            return;
           } else if (statusSesi.global === 'selesai') {
             statusContainer.innerHTML = '✅ ' + statusSesi.pesan;
             statusContainer.style.background = '#e8f5e9';
             statusContainer.style.border = '2px solid #2e7d32';
             statusContainer.style.color = '#1b5e20';
+            container.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">📊 ' + statusSesi.pesan + ' Rekap hari ini sudah tidak tersedia.</p>';
+            return;
           } else {
             statusContainer.innerHTML = '🟢 ' + statusSesi.pesan + ' Silakan lakukan scan absensi.';
             statusContainer.style.background = '#e3f2fd';
             statusContainer.style.border = '2px solid #0d47a1';
             statusContainer.style.color = '#0d47a1';
           }
+        }
+        
+        // Jika sesi tidak aktif, jangan tampilkan data
+        if (!isSesiAktif) {
+          container.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">⏳ Tidak ada sesi aktif saat ini. Data akan muncul saat sesi berlangsung.</p>';
+          return;
         }
         
         var html = '';
@@ -675,7 +687,7 @@
             html += '</tr>';
           });
         } else {
-          html += '<tr><td colspan="' + (sesiNames.length + 3) + '" style="text-align:center;color:#999;">Belum ada data</td></tr>';
+          html += '<tr><td colspan="' + (sesiNames.length + 3) + '" style="text-align:center;color:#999;">Belum ada data scan hari ini</td></tr>';
         }
         html += '</table></div>';
         
@@ -700,7 +712,7 @@
             html += '</tr>';
           });
         } else {
-          html += '<tr><td colspan="' + (sesiNames.length + 3) + '" style="text-align:center;color:#999;">Belum ada data</td></tr>';
+          html += '<tr><td colspan="' + (sesiNames.length + 3) + '" style="text-align:center;color:#999;">Belum ada data scan hari ini</td></tr>';
         }
         html += '</table></div>';
         
