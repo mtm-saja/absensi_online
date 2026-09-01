@@ -526,6 +526,7 @@
       </div>
       <div class="card">
         <h3 class="card-title">📋 Rekap Kehadiran Hari Ini</h3>
+        <div id="status-sesi-global" style="padding:10px;background:#f5f5f5;border-radius:6px;margin-bottom:10px;text-align:center;font-weight:600;"></div>
         <div id="rekap-hari-ini" class="loading"><span class="spinner"></span> Memuat rekap...</div>
       </div>
     `;
@@ -621,12 +622,35 @@
         }
       });
     
-    // Load rekap hari ini
+    // Load rekap hari ini dengan status global
     jsonp('getRekapHariIni')
       .then(function(data) {
         var container = document.getElementById('rekap-hari-ini');
+        var statusContainer = document.getElementById('status-sesi-global');
         if (!container) return;
+        
         var sesiNames = data.sesiNames || ['Sesi 1', 'Sesi 2', 'Sesi 3'];
+        
+        // Tampilkan status global
+        if (statusContainer) {
+          var statusSesi = data.statusSesi || {};
+          if (statusSesi.global === 'belum_mulai') {
+            statusContainer.innerHTML = '🔔 ' + statusSesi.pesan;
+            statusContainer.style.background = '#fff3e0';
+            statusContainer.style.border = '2px solid #f57f17';
+            statusContainer.style.color = '#e65100';
+          } else if (statusSesi.global === 'selesai') {
+            statusContainer.innerHTML = '✅ ' + statusSesi.pesan;
+            statusContainer.style.background = '#e8f5e9';
+            statusContainer.style.border = '2px solid #2e7d32';
+            statusContainer.style.color = '#1b5e20';
+          } else {
+            statusContainer.innerHTML = '🟢 ' + statusSesi.pesan + ' Silakan lakukan scan absensi.';
+            statusContainer.style.background = '#e3f2fd';
+            statusContainer.style.border = '2px solid #0d47a1';
+            statusContainer.style.color = '#0d47a1';
+          }
+        }
         
         var html = '';
         
@@ -634,19 +658,24 @@
         html += '<h4 style="margin:10px 0 8px;color:#0d47a1;">👨‍🏫 Rekap Guru Hari Ini</h4>';
         html += '<div class="rekap-table-wrap"><table class="rekap-table"><tr><th>No</th><th>Nama</th>';
         sesiNames.forEach(function(s) { html += '<th>' + s + '</th>'; });
-        html += '</tr>';
+        html += '<th>Jam Scan</th></tr>';
         
         if (data.guru && data.guru.length > 0) {
           data.guru.forEach(function(row, i) {
             html += '<tr><td>' + (i+1) + '</td><td style="text-align:left;">' + row.nama + '</td>';
+            var jamText = '';
             sesiNames.forEach(function(sesi) {
               var status = row.status && row.status[sesi] ? row.status[sesi] : '-';
               html += '<td>' + renderStatus(status) + '</td>';
+              if (row.jam && row.jam[sesi] && row.jam[sesi] !== '-') {
+                jamText += sesi + ': ' + row.jam[sesi] + ' ';
+              }
             });
+            html += '<td style="font-size:10px;color:#666;">' + (jamText || '-') + '</td>';
             html += '</tr>';
           });
         } else {
-          html += '<tr><td colspan="' + (sesiNames.length + 2) + '" style="text-align:center;color:#999;">Belum ada data</td></tr>';
+          html += '<tr><td colspan="' + (sesiNames.length + 3) + '" style="text-align:center;color:#999;">Belum ada data</td></tr>';
         }
         html += '</table></div>';
         
@@ -654,19 +683,24 @@
         html += '<h4 style="margin:15px 0 8px;color:#0d47a1;">👨‍🎓 Rekap Siswa Hari Ini</h4>';
         html += '<div class="rekap-table-wrap"><table class="rekap-table"><tr><th>No</th><th>Nama</th>';
         sesiNames.forEach(function(s) { html += '<th>' + s + '</th>'; });
-        html += '</tr>';
+        html += '<th>Jam Scan</th></tr>';
         
         if (data.siswa && data.siswa.length > 0) {
           data.siswa.forEach(function(row, i) {
             html += '<tr><td>' + (i+1) + '</td><td style="text-align:left;">' + row.nama + '</td>';
+            var jamText = '';
             sesiNames.forEach(function(sesi) {
               var status = row.status && row.status[sesi] ? row.status[sesi] : '-';
               html += '<td>' + renderStatus(status) + '</td>';
+              if (row.jam && row.jam[sesi] && row.jam[sesi] !== '-') {
+                jamText += sesi + ': ' + row.jam[sesi] + ' ';
+              }
             });
+            html += '<td style="font-size:10px;color:#666;">' + (jamText || '-') + '</td>';
             html += '</tr>';
           });
         } else {
-          html += '<tr><td colspan="' + (sesiNames.length + 2) + '" style="text-align:center;color:#999;">Belum ada data</td></tr>';
+          html += '<tr><td colspan="' + (sesiNames.length + 3) + '" style="text-align:center;color:#999;">Belum ada data</td></tr>';
         }
         html += '</table></div>';
         
@@ -674,8 +708,12 @@
       })
       .catch(function(err) {
         var container = document.getElementById('rekap-hari-ini');
+        var statusContainer = document.getElementById('status-sesi-global');
         if (container) {
           container.innerHTML = '<p style="color:red;">❌ Gagal memuat rekap: ' + (err.message || 'unknown') + '</p>';
+        }
+        if (statusContainer) {
+          statusContainer.innerHTML = '⚠️ Gagal memuat status sesi';
         }
       });
   }
