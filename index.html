@@ -391,7 +391,7 @@
 
 <script>
   // ==================== KONFIGURASI ====================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbyfn0VUGB1dbl1GvMR35HvaGz6utsASeDsMMMe9KzI3pcy1FQ6JjvjebZdrSRebtnEbeg/exec'; // Ganti dengan URL Web App Anda
+  const API_URL = 'https://script.google.com/macros/s/AKfycbyrFsrd_42ngZN8OGmfriRjgy21CtZYowNrfntYLy6J0AvkdbkA-KhgJoQKYRFL8C2JUg/exec'; // Ganti dengan URL Web App Anda
   
   // ==================== GLOBAL ====================
   let currentUser = null;
@@ -1216,29 +1216,36 @@
   
   // ===== UPDATE SESI AKTIF =====
     function updateActiveSesi() {
-    const selected = [];
-    if (document.getElementById('sesi-1').checked) selected.push('1');
-    if (document.getElementById('sesi-2').checked) selected.push('2');
-    if (document.getElementById('sesi-3').checked) selected.push('3');
-    
-    if (selected.length === 0) {
-      showToast('❌ Pilih minimal 1 sesi!', 'error');
-      return;
+      const selected = [];
+      if (document.getElementById('sesi-1').checked) selected.push('1');
+      if (document.getElementById('sesi-2').checked) selected.push('2');
+      if (document.getElementById('sesi-3').checked) selected.push('3');
+      
+      if (selected.length === 0) {
+        showToast('❌ Pilih minimal 1 sesi!', 'error');
+        return;
+      }
+      
+      const value = selected.join(',');
+      showToast('⏳ Menyimpan...', 'info');
+      
+      // Simpan ke PENGATURAN
+      jsonp('updatePengaturan', { key: 'ACTIVE_SESI', value: value })
+        .then((result) => {
+          if (result && result.success) {
+            showToast('✅ Sesi aktif berhasil diupdate!', 'success');
+            loadPengaturan(); // Refresh
+            // Juga refresh dashboard agar langsung terlihat
+            if (currentPage === 'dashboard') loadDashboard();
+          } else {
+            throw new Error(result?.message || 'Gagal menyimpan');
+          }
+        })
+        .catch((err) => {
+          showToast('❌ Gagal update: ' + (err.message || 'unknown'), 'error');
+          console.error(err);
+        });
     }
-    
-    const value = selected.join(',');
-    showToast('⏳ Menyimpan...', 'info');
-    
-    jsonp('updatePengaturan', { key: 'ACTIVE_SESI', value: value })
-      .then(() => {
-        showToast('✅ Sesi aktif berhasil diupdate!', 'success');
-        loadPengaturan(); // Refresh
-      })
-      .catch((err) => {
-        showToast('❌ Gagal update: ' + (err.message || 'unknown'), 'error');
-        console.error(err);
-      });
-  }
   
   // ===== UPDATE WAKTU SESI =====
     function updateWaktuSesi() {
