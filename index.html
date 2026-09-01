@@ -303,7 +303,7 @@
 
 <script>
   // ==================== KONFIGURASI ====================
-  var API_URL = 'https://script.google.com/macros/s/AKfycbygJyvGGq6fTtMq4euuepoSp1RMh8msc0yocQPYp_1wMAO8OqxQYThbH6jZSSjZobRO/exec'; // Ganti dengan URL Web App Anda
+  var API_URL = 'https://script.google.com/macros/s/AKfycbw3FZVzBFayTjeL7JUXOw6uuIueMeE1u0erqQqYR2mfMavRyzzgbYp7SUBzCHn2LHdCvw/exec'; // Ganti dengan URL Web App Anda
  
   // ==================== GLOBAL ====================
   var currentUser = null;
@@ -934,6 +934,7 @@
           resultEl.innerHTML = `
             <div style="background:#ffebee;padding:12px;border-radius:6px;border-left:4px solid #c62828;">
               <h4 style="color:#c62828;">${result.message}</h4>
+              ${result.data && result.data.jam ? '<p style="margin:3px 0;font-size:12px;">⏰ Sudah absen jam: ' + result.data.jam + '</p>' : ''}
             </div>
           `;
           showToast('❌ ' + result.message, 'error');
@@ -1054,9 +1055,6 @@
     var today = new Date();
     var firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
     
-    // Get list of classes for filter
-    var kelasOptions = '<option value="Semua">Semua Kelas</option>';
-    
     main.innerHTML = `
       <div class="card">
         <h2 class="card-title">📈 Rekap Absensi ${role === 'siswa' ? 'Siswa' : '(Siswa & Guru)'}</h2>
@@ -1074,28 +1072,21 @@
           <label>🏫 Filter Kelas</label>
           <select id="rekap-kelas" onchange="loadRekapData('${role}')">
             <option value="Semua">Semua Kelas</option>
+            <option value="7A">7A</option>
+            <option value="7B">7B</option>
+            <option value="7C">7C</option>
+            <option value="8A">8A</option>
+            <option value="8B">8B</option>
+            <option value="8C">8C</option>
+            <option value="9A">9A</option>
+            <option value="9B">9B</option>
+            <option value="9C">9C</option>
           </select>
         </div>
         ` : ''}
         <div id="rekap-hasil" style="margin-top:12px;"></div>
       </div>
     `;
-    
-    // Load kelas options if role is siswa
-    if (role === 'siswa') {
-      // Try to get kelas from existing data or use default
-      var kelasSelect = document.getElementById('rekap-kelas');
-      if (kelasSelect) {
-        // Add default classes
-        var kelasList = ['7A', '7B', '7C', '8A', '8B', '8C', '9A', '9B', '9C'];
-        kelasList.forEach(function(k) {
-          var opt = document.createElement('option');
-          opt.value = k;
-          opt.textContent = k;
-          kelasSelect.appendChild(opt);
-        });
-      }
-    }
   }
   
   function loadRekapData(role) {
@@ -1299,6 +1290,19 @@
       
       html += '</div></div>';
       
+      // ========== CLEANUP DUPLICATE DATA ==========
+      html += `
+        <div class="setting-group">
+          <h4>🧹 Bersihkan Data Duplikat</h4>
+          <p style="font-size:11px;color:#666;margin-bottom:8px;">Hapus data absensi duplikat (ID + Tanggal + Sesi yang sama)</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-danger btn-sm" onclick="cleanupDuplicates('siswa')">🧹 Bersihkan Duplikat Siswa</button>
+            <button class="btn btn-danger btn-sm" onclick="cleanupDuplicates('guru')">🧹 Bersihkan Duplikat Guru</button>
+          </div>
+          <div id="cleanup-result" style="margin-top:8px;"></div>
+        </div>
+      `;
+      
       container.innerHTML = html;
     })
     .catch(function(err) {
@@ -1308,6 +1312,45 @@
       }
       showToast('Gagal memuat pengaturan', 'error');
     });
+  }
+  
+  // ==================== CLEANUP DUPLICATES ====================
+  function cleanupDuplicates(role) {
+    var resultEl = document.getElementById('cleanup-result');
+    if (!resultEl) {
+      showToast('Halaman pengaturan perlu di-refresh', 'error');
+      return;
+    }
+    
+    resultEl.innerHTML = '<div class="loading"><span class="spinner"></span> Membersihkan data...</div>';
+    
+    jsonp('cleanupDuplicates', { role: role })
+      .then(function(result) {
+        if (result.success) {
+          resultEl.innerHTML = `
+            <div style="background:#e8f5e9;padding:10px;border-radius:6px;color:#2e7d32;font-weight:600;">
+              ✅ ${result.message}
+            </div>
+          `;
+          showToast('✅ ' + result.message, 'success');
+          if (currentPage === 'dashboard') setTimeout(function() { loadDashboard(); }, 500);
+        } else {
+          resultEl.innerHTML = `
+            <div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;">
+              ❌ ${result.message}
+            </div>
+          `;
+          showToast('❌ ' + result.message, 'error');
+        }
+      })
+      .catch(function(err) {
+        resultEl.innerHTML = `
+          <div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;">
+            ❌ Gagal membersihkan data: ${err.message || 'unknown'}
+          </div>
+        `;
+        showToast('❌ Gagal membersihkan data', 'error');
+      });
   }
   
   function updatePIN() {
