@@ -264,6 +264,17 @@
       font-weight: 600;
       margin-top: 8px;
     }
+    
+    .pesan-tutup {
+      text-align: center;
+      padding: 30px 20px;
+      background: #e3f2fd;
+      border-radius: 8px;
+      border: 2px solid #0d47a1;
+      color: #0d47a1;
+      font-size: 16px;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -310,22 +321,22 @@
 </div>
 
 <!-- FOOTER -->
-<div class="footer">© 2026 SMP NEGERI 1 SOBANG | Absensi Online v2.7</div>
+<div class="footer">© 2026 SMP NEGERI 1 SOBANG | Absensi Online v2.8</div>
 
 
 <script>
   // ==================== KONFIGURASI ====================
-  var API_URL = 'https://script.google.com/macros/s/AKfycbwZOHFAcAMjmeeXchQPbBbNKZ3aQHMsKbpuzrh1Wit4pckPUT39QjVZGelpwO5do5r1EA/exec'; // Ganti dengan URL Web App Anda
+  var API_URL = 'https://script.google.com/macros/s/AKfycby0lbjBrQcBMw9olGCVHDvFFkiUiC2LQ5mQyBzJMtyq99NgByf-PtolHFWLzktdM4fPHA/exec'; // Ganti dengan URL Web App Anda
  
   // ==================== GLOBAL ====================
   var currentUser = null;
   var currentPage = 'dashboard';
   var scannerInstance = null;
   var isScanning = false;
-  var isCooldown = false; // Jeda 5 detik
+  var isCooldown = false;
   var lastScannedData = null;
   var lastScanTime = 0;
-  var SCAN_COOLDOWN = 5000; // 5 detik
+  var SCAN_COOLDOWN = 3000; // 3 detik (diubah dari 5 detik)
   
   // ==================== CLOCK ====================
   function updateClock() {
@@ -656,6 +667,39 @@
         var sesiNames = data.sesiNames || ['Sesi 1', 'Sesi 2', 'Sesi 3'];
         var statusSesi = data.statusSesi || {};
         
+        // CEK APAKAH SEMUA SESI SELESAI ATAU BELUM MULAI
+        if (data.semuaSesiSelesai) {
+          if (statusContainer) {
+            statusContainer.innerHTML = `
+              <div class="status-message selesai">
+                ✅ ${data.pesanTutup || 'Sesi scan absensi telah berakhir'}
+              </div>
+            `;
+          }
+          container.innerHTML = `
+            <div class="pesan-tutup">
+              📌 ${data.pesanTutup || 'Sesi scan absensi telah berakhir'}
+            </div>
+          `;
+          return;
+        }
+        
+        if (statusSesi.global === 'belum_mulai') {
+          if (statusContainer) {
+            statusContainer.innerHTML = `
+              <div class="status-message belum_mulai">
+                🔔 ${data.pesanTutup || 'Jam scan masuk dimulai'}
+              </div>
+            `;
+          }
+          container.innerHTML = `
+            <div class="pesan-tutup" style="background:#fff3e0;border-color:#f57f17;color:#e65100;">
+              ⏳ ${data.pesanTutup || 'Jam scan masuk dimulai'}
+            </div>
+          `;
+          return;
+        }
+        
         if (statusContainer) {
           var statusClass = statusSesi.global || 'error';
           var iconMap = {
@@ -852,13 +896,12 @@
           <button class="btn btn-danger" onclick="stopScanner()">⏹ Stop</button>
         </div>
         <div id="scan-cooldown" style="display:none;" class="scan-cooldown">
-          ⏳ Mohon tunggu 5 detik sebelum scan berikutnya...
+          ⏳ Mohon tunggu 3 detik sebelum scan berikutnya...
         </div>
         <div id="scan-result" style="margin-top:12px;"></div>
       </div>
     `;
     
-    // Reset cooldown state
     isCooldown = false;
     lastScannedData = null;
     lastScanTime = 0;
@@ -890,7 +933,7 @@
           aspectRatio: 1.0 
         },
         function(decodedText) {
-          // CEK COOLDOWN - JEDA 5 DETIK
+          // CEK COOLDOWN - JEDA 3 DETIK
           var now = Date.now();
           var timeSinceLastScan = now - lastScanTime;
           
@@ -915,14 +958,11 @@
           isCooldown = true;
           lastScanTime = Date.now();
           
-          // Disable start button during cooldown
           var startBtn = document.getElementById('btn-start-scan');
           if (startBtn) startBtn.disabled = true;
           
-          // Process scan
           handleScanResult(decodedText, role);
           
-          // Reset cooldown after 5 seconds
           setTimeout(function() {
             isCooldown = false;
             if (startBtn) startBtn.disabled = false;
@@ -965,7 +1005,6 @@
         isScanning = false;
       }
     }
-    // Reset cooldown
     isCooldown = false;
     var startBtn = document.getElementById('btn-start-scan');
     if (startBtn) startBtn.disabled = false;
@@ -976,12 +1015,11 @@
     if (!resultEl) return;
     resultEl.innerHTML = '<div class="loading"><span class="spinner"></span> Memproses...</div>';
     
-    // Cek apakah data sama dengan yang terakhir di-scan (dalam 5 detik)
     var now = Date.now();
     if (lastScannedData === barcodeData && (now - lastScanTime) < SCAN_COOLDOWN) {
       resultEl.innerHTML = `
         <div style="background:#fff3e0;padding:12px;border-radius:6px;border-left:4px solid #f57f17;">
-          <h4 style="color:#e65100;">⏳ Mohon tunggu 5 detik sebelum scan ulang!</h4>
+          <h4 style="color:#e65100;">⏳ Mohon tunggu 3 detik sebelum scan ulang!</h4>
           <p style="margin:3px 0;font-size:13px;">QR Code yang sama terdeteksi. Silakan tunggu cooldown.</p>
         </div>
       `;
@@ -1006,13 +1044,23 @@
             setTimeout(function() { loadDashboard(); }, 1000);
           }
         } else {
+          // Tampilkan pesan error yang lebih jelas
+          var errorMsg = result.message || 'Gagal melakukan absen';
+          var detailMsg = '';
+          if (result.data && result.data.message) {
+            detailMsg = result.data.message;
+          } else if (result.data && result.data.jam) {
+            detailMsg = 'Sudah absen pada jam: ' + result.data.jam;
+          }
+          
           resultEl.innerHTML = `
             <div style="background:#ffebee;padding:12px;border-radius:6px;border-left:4px solid #c62828;">
-              <h4 style="color:#c62828;">${result.message}</h4>
-              ${result.data && result.data.jam ? '<p style="margin:3px 0;font-size:12px;">⏰ Sudah absen jam: ' + result.data.jam + '</p>' : ''}
+              <h4 style="color:#c62828;">❌ ${errorMsg}</h4>
+              ${detailMsg ? '<p style="margin:3px 0;font-size:13px;font-weight:600;">' + detailMsg + '</p>' : ''}
+              ${result.data && result.data.nama ? '<p style="margin:3px 0;font-size:12px;color:#666;">👤 ' + result.data.nama + '</p>' : ''}
             </div>
           `;
-          showToast('❌ ' + result.message, 'error');
+          showToast('❌ ' + errorMsg, 'error');
         }
         var statusEl = document.getElementById('scan-status');
         if (statusEl) statusEl.textContent = '📷 Siap scan lagi';
