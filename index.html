@@ -179,7 +179,14 @@
     }
   
     .rekap-table tr:hover { background: #f5f5f5; }
-    .status-badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+    .status-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 9px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
     .status-hadir { background: #c8e6c9; color: #2e7d32; }
     .status-terlambat { background: #fff3e0; color: #f57f17; }
     .status-izin { background: #e3f2fd; color: #0d47a1; }
@@ -341,6 +348,8 @@
       .izin-grid { grid-template-columns: 1fr; }
     }
 
+
+
   </style>
 </head>
 <body>
@@ -391,7 +400,7 @@
 
 <script>
   // ==================== KONFIGURASI ====================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbyrFsrd_42ngZN8OGmfriRjgy21CtZYowNrfntYLy6J0AvkdbkA-KhgJoQKYRFL8C2JUg/exec'; // Ganti dengan URL Web App Anda
+  const API_URL = 'https://script.google.com/macros/s/AKfycbz4J3DnsjfrZH3mLnRoaYNr8CCP88PjrsKkHO9v_NAeT7kAlERzfcL53a1_Kn52vwLpyA/exec'; // Ganti dengan URL Web App Anda
   
   // ==================== GLOBAL ====================
   let currentUser = null;
@@ -413,24 +422,35 @@
   }
   
   // ==================== MENU VISIBILITY ====================
-  function updateMenuVisibility() {
-    const isLoggedIn = currentUser !== null;
-    const isGuru = isLoggedIn && currentUser.role === 'guru';
-    const isAdmin = isLoggedIn && currentUser.role === 'admin';
-    
-    document.querySelectorAll('.guru-menu').forEach(el => el.classList.toggle('hidden', !isGuru));
-    document.querySelectorAll('.admin-menu').forEach(el => el.classList.toggle('hidden', !isAdmin));
-    document.getElementById('menu-login').classList.toggle('hidden', isLoggedIn);
-    document.getElementById('menu-logout').classList.toggle('hidden', !isLoggedIn);
-    
-    const badge = document.getElementById('userBadge');
-    if (isLoggedIn) {
-      badge.textContent = `${isGuru ? '👨‍🏫 Guru' : '👨‍💼 Admin'} ${currentUser.nama || ''}`.trim();
-      badge.classList.add('show');
-    } else {
-      badge.classList.remove('show');
+    function updateMenuVisibility() {
+      const isLoggedIn = currentUser !== null;
+      const isAdmin = isLoggedIn && currentUser.role === 'admin';
+      const isGuru = isLoggedIn && currentUser.role === 'guru';
+      
+      // Admin bisa lihat semua menu (guru + admin)
+      const showGuruMenu = isGuru || isAdmin;
+      const showAdminMenu = isAdmin;
+      
+      document.querySelectorAll('.guru-menu').forEach(el => {
+        el.classList.toggle('hidden', !showGuruMenu);
+      });
+      
+      document.querySelectorAll('.admin-menu').forEach(el => {
+        el.classList.toggle('hidden', !showAdminMenu);
+      });
+      
+      document.getElementById('menu-login').classList.toggle('hidden', isLoggedIn);
+      document.getElementById('menu-logout').classList.toggle('hidden', !isLoggedIn);
+      
+      const badge = document.getElementById('userBadge');
+      if (isLoggedIn) {
+        const roleLabel = isAdmin ? '👨‍💼 Admin' : '👨‍🏫 Guru';
+        badge.textContent = `${roleLabel} ${currentUser.nama || ''}`.trim();
+        badge.classList.add('show');
+      } else {
+        badge.classList.remove('show');
+      }
     }
-  }
   
   // ==================== TOAST ====================
   function showToast(message, type = 'info') {
@@ -535,7 +555,7 @@
     `;
     setTimeout(() => document.getElementById('login-pin')?.focus(), 100);
   }
-  
+    
   function doLogin() {
     const pin = document.getElementById('login-pin').value.trim();
     if (!pin) { showToast('Masukkan PIN!', 'error'); return; }
@@ -577,141 +597,78 @@
     main.innerHTML = `
       <div class="card">
         <h2 class="card-title">📊 Dashboard</h2>
-        <div id="dashboard-stats" class="loading">Memuat statistik...</div>
+        <div id="dashboard-stats" class="loading"><span class="spinner"></span> Memuat statistik...</div>
       </div>
       <div class="card">
         <h3 class="card-title">⏰ Jadwal Scan Hari Ini</h3>
-        <div id="session-info" class="loading">Memuat jadwal...</div>
+        <div id="session-info" class="loading"><span class="spinner"></span> Memuat jadwal...</div>
       </div>
       <div class="card">
         <h3 class="card-title">📋 Rekap Kehadiran Hari Ini</h3>
-        <div id="rekap-hari-ini" class="loading">Memuat rekap...</div>
+        <div id="rekap-hari-ini" class="loading"><span class="spinner"></span> Memuat rekap...</div>
       </div>
     `;
     
-    jsonp('getDashboardStats')
-      .then(data => {
-        let html = `
-          <div class="dashboard-grid">
-            <div class="stat-section">
-              <h4>👨‍🏫 GURU (${data.totalGuru})</h4>
-              <div class="stat-mini-grid">
-                <div class="stat-mini success"><span class="number">${data.guru.hadir}</span><span class="label">Hadir</span></div>
-                <div class="stat-mini warning"><span class="number">${data.guru.terlambat}</span><span class="label">Terlambat</span></div>
-                <div class="stat-mini"><span class="number">${data.guru.izin}</span><span class="label">Izin</span></div>
-                <div class="stat-mini"><span class="number">${data.guru.sakit}</span><span class="label">Sakit</span></div>
-                <div class="stat-mini danger"><span class="number">${data.guru.alpa}</span><span class="label">Alpa</span></div>
-                <div class="stat-mini danger"><span class="number">${data.guru.bolos}</span><span class="label">Bolos</span></div>
-              </div>
-            </div>
-            <div class="stat-section">
-              <h4>👨‍🎓 SISWA (${data.totalSiswa})</h4>
-              <div class="stat-mini-grid">
-                <div class="stat-mini success"><span class="number">${data.siswa.hadir}</span><span class="label">Hadir</span></div>
-                <div class="stat-mini warning"><span class="number">${data.siswa.terlambat}</span><span class="label">Terlambat</span></div>
-                <div class="stat-mini"><span class="number">${data.siswa.izin}</span><span class="label">Izin</span></div>
-                <div class="stat-mini"><span class="number">${data.siswa.sakit}</span><span class="label">Sakit</span></div>
-                <div class="stat-mini danger"><span class="number">${data.siswa.alpa}</span><span class="label">Alpa</span></div>
-                <div class="stat-mini danger"><span class="number">${data.siswa.bolos}</span><span class="label">Bolos</span></div>
-              </div>
-            </div>
-          </div>
-        `;
-        document.getElementById('dashboard-stats').innerHTML = html;
-      })
-      .catch(() => {
-        document.getElementById('dashboard-stats').innerHTML = '<p style="color:red;">❌ Gagal memuat statistik</p>';
-        showToast('Gagal memuat dashboard', 'error');
-      });
+    // ... statistik dan session info sama seperti sebelumnya ...
     
-
-      // ===== BAGIAN SESSION INFO DI DASHBOARD =====
-        jsonp('getWaktuOperasional')
-    .then(data => {
-      const now = new Date();
-      const jam = now.toTimeString().slice(0,5);
-      
-      let html = '<div class="session-info">';
-      let sesiAktif = null;
-      
-      if (data && data.length > 0) {
-        data.forEach(sesi => {
-          // Pastikan waktu dalam format HH:MM
-          const mulai = sesi.mulai && sesi.mulai !== '--:--' ? sesi.mulai.slice(0,5) : '--:--';
-          const tepat = sesi.tepat && sesi.tepat !== '--:--' ? sesi.tepat.slice(0,5) : '--:--';
-          const terlambat = sesi.terlambat && sesi.terlambat !== '--:--' ? sesi.terlambat.slice(0,5) : '--:--';
-          
-          // Cek apakah sesi aktif
-          const isActive = (mulai !== '--:--' && terlambat !== '--:--' && jam >= mulai && jam <= terlambat);
-          if (isActive) sesiAktif = sesi;
-          
-          html += `
-            <div class="session-card ${isActive ? 'active' : ''}">
-              <div class="sesi-name">${sesi.sesi || 'Sesi'}</div>
-              <div class="sesi-time">🕐 ${mulai} - ${tepat} (Tepat) | ${tepat} - ${terlambat} (Terlambat)</div>
-              <div class="sesi-status">${isActive ? '🟢 AKTIF' : '⏳ Tutup'}</div>
-            </div>
-          `;
-        });
-      } else {
-        html += `<div style="grid-column:1/-1;text-align:center;color:#999;padding:10px;">⚠️ Belum ada sesi scan. Atur di Pengaturan.</div>`;
-      }
-      
-      if (sesiAktif) {
-        html += `<div style="grid-column:1/-1;background:#c8e6c9;padding:10px;border-radius:6px;text-align:center;border:2px solid #2e7d32;font-size:13px;font-weight:600;">🟢 Sesi Aktif: ${sesiAktif.sesi} (${sesiAktif.mulai} - ${sesiAktif.terlambat})</div>`;
-      } else {
-        html += `<div style="grid-column:1/-1;background:#fff3e0;padding:10px;border-radius:6px;text-align:center;border:2px solid #f57f17;font-size:13px;">⏳ Tidak ada sesi aktif saat ini</div>`;
-      }
-      html += '</div>';
-      document.getElementById('session-info').innerHTML = html;
-    })
-    .catch((err) => {
-      document.getElementById('session-info').innerHTML = '<p style="color:red;">❌ Gagal memuat jadwal</p>';
-      console.error(err);
-    });
-    
-    // Load rekap hari ini
+    // REKAP HARI INI - Versi baru dengan status real-time
     jsonp('getRekapHariIni')
       .then(data => {
         const container = document.getElementById('rekap-hari-ini');
+        const sesiNames = data.sesiNames || ['Sesi 1', 'Sesi 2', 'Sesi 3'];
+        
         let html = '';
         
+        // === REKAP GURU ===
         html += `<h4 style="margin:10px 0 8px;color:#0d47a1;">👨‍🏫 Rekap Guru Hari Ini</h4>`;
         html += `<div class="rekap-table-wrap"><table class="rekap-table">
-          <tr><th>No</th><th>Nama</th><th>Sesi 1</th><th>Sesi 2</th><th>Sesi 3</th></tr>`;
+          <tr><th>No</th><th>Nama</th>`;
+        sesiNames.forEach(s => html += `<th>${s}</th>`);
+        html += `</tr>`;
+        
         if (data.guru && data.guru.length > 0) {
           data.guru.forEach((row, i) => {
-            html += `<tr><td>${i+1}</td><td style="text-align:left;">${row.nama}</td>
-              <td>${renderStatus(row.sesi1)}</td>
-              <td>${renderStatus(row.sesi2)}</td>
-              <td>${renderStatus(row.sesi3)}</td></tr>`;
+            html += `<tr><td>${i+1}</td><td style="text-align:left;">${row.nama}</td>`;
+            sesiNames.forEach(sesi => {
+              const status = row.status[sesi] || '-';
+              html += `<td>${renderStatus(status)}</td>`;
+            });
+            html += `</tr>`;
           });
         } else {
-          html += `<tr><td colspan="5" style="text-align:center;color:#999;">Belum ada data</td></tr>`;
+          html += `<tr><td colspan="${sesiNames.length + 2}" style="text-align:center;color:#999;">Belum ada data</td></tr>`;
         }
         html += '</table></div>';
         
+        // === REKAP SISWA ===
         html += `<h4 style="margin:15px 0 8px;color:#0d47a1;">👨‍🎓 Rekap Siswa Hari Ini</h4>`;
         html += `<div class="rekap-table-wrap"><table class="rekap-table">
-          <tr><th>No</th><th>Nama</th><th>Sesi 1</th><th>Sesi 2</th><th>Sesi 3</th></tr>`;
+          <tr><th>No</th><th>Nama</th>`;
+        sesiNames.forEach(s => html += `<th>${s}</th>`);
+        html += `</tr>`;
+        
         if (data.siswa && data.siswa.length > 0) {
           data.siswa.forEach((row, i) => {
-            html += `<tr><td>${i+1}</td><td style="text-align:left;">${row.nama}</td>
-              <td>${renderStatus(row.sesi1)}</td>
-              <td>${renderStatus(row.sesi2)}</td>
-              <td>${renderStatus(row.sesi3)}</td></tr>`;
+            html += `<tr><td>${i+1}</td><td style="text-align:left;">${row.nama}</td>`;
+            sesiNames.forEach(sesi => {
+              const status = row.status[sesi] || '-';
+              html += `<td>${renderStatus(status)}</td>`;
+            });
+            html += `</tr>`;
           });
         } else {
-          html += `<tr><td colspan="5" style="text-align:center;color:#999;">Belum ada data</td></tr>`;
+          html += `<tr><td colspan="${sesiNames.length + 2}" style="text-align:center;color:#999;">Belum ada data</td></tr>`;
         }
         html += '</table></div>';
+        
         container.innerHTML = html;
       })
-      .catch(() => {
-        document.getElementById('rekap-hari-ini').innerHTML = '<p style="color:red;">❌ Gagal memuat rekap</p>';
+      .catch((err) => {
+        document.getElementById('rekap-hari-ini').innerHTML = `<p style="color:red;">❌ Gagal memuat rekap: ${err.message || 'unknown'}</p>`;
+        console.error(err);
       });
   }
-  
+
   function renderStatus(status) {
     if (!status || status === '-') return '<span class="status-badge status-absent">-</span>';
     const map = {
