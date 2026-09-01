@@ -126,6 +126,7 @@
     .btn-warning { background: #f57f17; }
     .btn-sm { padding: 4px 10px; font-size: 11px; }
     .btn-block { width: 100%; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     
     .form-group { margin-bottom: 10px; }
     .form-group label { display: block; font-weight: 600; margin-bottom: 3px; color: #333; font-size: 12px; }
@@ -252,6 +253,17 @@
     .status-message.aktif { background: #e8f5e9; border: 2px solid #2e7d32; color: #1b5e20; }
     .status-message.selesai { background: #e3f2fd; border: 2px solid #0d47a1; color: #0d47a1; }
     .status-message.error { background: #ffebee; border: 2px solid #c62828; color: #c62828; }
+    
+    .scan-cooldown {
+      background: #fff3e0;
+      border: 2px solid #f57f17;
+      color: #e65100;
+      padding: 10px;
+      border-radius: 6px;
+      text-align: center;
+      font-weight: 600;
+      margin-top: 8px;
+    }
   </style>
 </head>
 <body>
@@ -298,18 +310,22 @@
 </div>
 
 <!-- FOOTER -->
-<div class="footer">© 2026 SMP NEGERI 1 SOBANG | Absensi Online v2.6</div>
+<div class="footer">© 2026 SMP NEGERI 1 SOBANG | Absensi Online v2.7</div>
 
 
 <script>
   // ==================== KONFIGURASI ====================
-  var API_URL = 'https://script.google.com/macros/s/AKfycbyQ7kl_TzCWPGAAE1sojktEatgwbo25gnNrJ6rQlr2NbWAOlw6I9rqaVd7-3m1UkYDtsw/exec'; // Ganti dengan URL Web App Anda
+  var API_URL = 'https://script.google.com/macros/s/AKfycbwZOHFAcAMjmeeXchQPbBbNKZ3aQHMsKbpuzrh1Wit4pckPUT39QjVZGelpwO5do5r1EA/exec'; // Ganti dengan URL Web App Anda
  
   // ==================== GLOBAL ====================
   var currentUser = null;
   var currentPage = 'dashboard';
   var scannerInstance = null;
   var isScanning = false;
+  var isCooldown = false; // Jeda 5 detik
+  var lastScannedData = null;
+  var lastScanTime = 0;
+  var SCAN_COOLDOWN = 5000; // 5 detik
   
   // ==================== CLOCK ====================
   function updateClock() {
@@ -544,7 +560,6 @@
       </div>
     `;
     
-    // Load stats
     jsonp('getDashboardStats')
       .then(function(data) {
         var container = document.getElementById('dashboard-stats');
@@ -588,7 +603,6 @@
         }
       });
     
-    // Load session info
     jsonp('getWaktuOperasional')
       .then(function(data) {
         var container = document.getElementById('session-info');
@@ -633,7 +647,6 @@
         }
       });
     
-    // Load rekap hari ini
     jsonp('getRekapHariIni')
       .then(function(data) {
         var container = document.getElementById('rekap-hari-ini');
@@ -643,7 +656,6 @@
         var sesiNames = data.sesiNames || ['Sesi 1', 'Sesi 2', 'Sesi 3'];
         var statusSesi = data.statusSesi || {};
         
-        // Tampilkan status global dengan styling yang jelas
         if (statusContainer) {
           var statusClass = statusSesi.global || 'error';
           var iconMap = {
@@ -660,7 +672,6 @@
           `;
         }
         
-        // Jika sesi tidak aktif, tampilkan pesan yang jelas
         if (statusSesi.global !== 'aktif') {
           var pesanAkhir = '';
           if (statusSesi.global === 'selesai') {
@@ -674,10 +685,8 @@
           return;
         }
         
-        // Sesi aktif - tampilkan data
         var html = '';
         
-        // === REKAP GURU ===
         html += '<h4 style="margin:10px 0 8px;color:#0d47a1;">👨‍🏫 Rekap Guru Hari Ini</h4>';
         html += '<div class="rekap-table-wrap"><table class="rekap-table"><tr><th>No</th><th>Nama</th>';
         sesiNames.forEach(function(s) { html += '<th>' + s + '</th>'; });
@@ -702,7 +711,6 @@
         }
         html += '</table></div>';
         
-        // === REKAP SISWA ===
         html += '<h4 style="margin:15px 0 8px;color:#0d47a1;">👨‍🎓 Rekap Siswa Hari Ini</h4>';
         html += '<div class="rekap-table-wrap"><table class="rekap-table"><tr><th>No</th><th>Nama</th><th>Kelas</th>';
         sesiNames.forEach(function(s) { html += '<th>' + s + '</th>'; });
@@ -840,12 +848,20 @@
           <div id="scanner-overlay"></div>
         </div>
         <div class="scanner-controls">
-          <button class="btn btn-success" onclick="startScanner('${role}')">📷 Mulai Scan</button>
+          <button class="btn btn-success" id="btn-start-scan" onclick="startScanner('${role}')">📷 Mulai Scan</button>
           <button class="btn btn-danger" onclick="stopScanner()">⏹ Stop</button>
+        </div>
+        <div id="scan-cooldown" style="display:none;" class="scan-cooldown">
+          ⏳ Mohon tunggu 5 detik sebelum scan berikutnya...
         </div>
         <div id="scan-result" style="margin-top:12px;"></div>
       </div>
     `;
+    
+    // Reset cooldown state
+    isCooldown = false;
+    lastScannedData = null;
+    lastScanTime = 0;
   }
   
   function startScanner(role) {
@@ -868,10 +884,52 @@
       
       scannerInstance.start(
         { facingMode: "environment" },
-        { fps: 10, qrbox: { width: 250, height: 250 }, aspectRatio: 1.0 },
+        { 
+          fps: 10, 
+          qrbox: { width: 250, height: 250 }, 
+          aspectRatio: 1.0 
+        },
         function(decodedText) {
+          // CEK COOLDOWN - JEDA 5 DETIK
+          var now = Date.now();
+          var timeSinceLastScan = now - lastScanTime;
+          
+          if (isCooldown || timeSinceLastScan < SCAN_COOLDOWN) {
+            var remaining = Math.ceil((SCAN_COOLDOWN - timeSinceLastScan) / 1000);
+            var cooldownEl = document.getElementById('scan-cooldown');
+            if (cooldownEl) {
+              cooldownEl.style.display = 'block';
+              cooldownEl.textContent = '⏳ Mohon tunggu ' + remaining + ' detik sebelum scan berikutnya...';
+            }
+            if (statusEl) statusEl.textContent = '⏳ Cooldown ' + remaining + 's...';
+            return;
+          }
+          
+          // Reset cooldown display
+          var cooldownEl = document.getElementById('scan-cooldown');
+          if (cooldownEl) cooldownEl.style.display = 'none';
+          
           if (statusEl) statusEl.textContent = '✅ QR Code terdeteksi!';
+          
+          // Set cooldown
+          isCooldown = true;
+          lastScanTime = Date.now();
+          
+          // Disable start button during cooldown
+          var startBtn = document.getElementById('btn-start-scan');
+          if (startBtn) startBtn.disabled = true;
+          
+          // Process scan
           handleScanResult(decodedText, role);
+          
+          // Reset cooldown after 5 seconds
+          setTimeout(function() {
+            isCooldown = false;
+            if (startBtn) startBtn.disabled = false;
+            var cooldownEl2 = document.getElementById('scan-cooldown');
+            if (cooldownEl2) cooldownEl2.style.display = 'none';
+            if (statusEl) statusEl.textContent = '📷 Siap scan lagi';
+          }, SCAN_COOLDOWN);
         },
         function() {}
       ).then(function() {
@@ -907,12 +965,30 @@
         isScanning = false;
       }
     }
+    // Reset cooldown
+    isCooldown = false;
+    var startBtn = document.getElementById('btn-start-scan');
+    if (startBtn) startBtn.disabled = false;
   }
   
   function handleScanResult(barcodeData, role) {
     var resultEl = document.getElementById('scan-result');
     if (!resultEl) return;
     resultEl.innerHTML = '<div class="loading"><span class="spinner"></span> Memproses...</div>';
+    
+    // Cek apakah data sama dengan yang terakhir di-scan (dalam 5 detik)
+    var now = Date.now();
+    if (lastScannedData === barcodeData && (now - lastScanTime) < SCAN_COOLDOWN) {
+      resultEl.innerHTML = `
+        <div style="background:#fff3e0;padding:12px;border-radius:6px;border-left:4px solid #f57f17;">
+          <h4 style="color:#e65100;">⏳ Mohon tunggu 5 detik sebelum scan ulang!</h4>
+          <p style="margin:3px 0;font-size:13px;">QR Code yang sama terdeteksi. Silakan tunggu cooldown.</p>
+        </div>
+      `;
+      return;
+    }
+    
+    lastScannedData = barcodeData;
     
     jsonp('scanQR', { barcodeData: barcodeData, role: role })
       .then(function(result) {
@@ -926,7 +1002,6 @@
             </div>
           `;
           showToast('✅ ' + result.message, 'success');
-          // Refresh dashboard if on dashboard page
           if (currentPage === 'dashboard') {
             setTimeout(function() { loadDashboard(); }, 1000);
           }
@@ -1195,7 +1270,6 @@
       
       var html = '';
       
-      // PIN
       html += `
         <div class="setting-group">
           <h4>🔑 PIN</h4>
@@ -1207,7 +1281,6 @@
         </div>
       `;
       
-      // Sesi Aktif
       var activeSesi = (settings.ACTIVE_SESI || '1,2,3').split(',').map(function(s) { return s.trim(); });
       html += `
         <div class="setting-group">
@@ -1222,7 +1295,6 @@
         </div>
       `;
       
-      // Waktu Sesi
       html += `
         <div class="setting-group">
           <h4>⏰ Waktu Sesi</h4>
@@ -1264,7 +1336,6 @@
         </div>
       `;
       
-      // Hari Libur
       var liburList = Object.keys(settings).filter(function(k) { return k.indexOf('LIBUR_') === 0; });
       html += `
         <div class="setting-group">
@@ -1290,7 +1361,6 @@
       
       html += '</div></div>';
       
-      // ========== CLEANUP DUPLICATE DATA ==========
       html += `
         <div class="setting-group">
           <h4>🧹 Bersihkan Data Duplikat</h4>
@@ -1314,7 +1384,6 @@
     });
   }
   
-  // ==================== CLEANUP DUPLICATES ====================
   function cleanupDuplicates(role) {
     var resultEl = document.getElementById('cleanup-result');
     if (!resultEl) {
