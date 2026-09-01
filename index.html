@@ -152,7 +152,7 @@
     .session-card.active .sesi-status { color: #2e7d32; }
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
     
-    .rekap-table-wrap { overflow-x: auto; max-height: 300px; overflow-y: auto; }
+    .rekap-table-wrap { overflow-x: auto; max-height: 400px; overflow-y: auto; }
     .rekap-table { width: 100%; border-collapse: collapse; font-size: 12px; }
     .rekap-table th { background: #0d47a1; color: white; padding: 6px 8px; text-align: center; white-space: nowrap; position: sticky; top: 0; z-index: 10; }
     .rekap-table td { padding: 5px 8px; border-bottom: 1px solid #eee; text-align: center; }
@@ -239,6 +239,19 @@
     .mb-10 { margin-bottom: 10px; }
     .flex { display: flex; gap: 8px; flex-wrap: wrap; }
     .flex-center { display: flex; align-items: center; justify-content: center; gap: 8px; }
+    
+    .status-message {
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .status-message.belum_mulai { background: #fff3e0; border: 2px solid #f57f17; color: #e65100; }
+    .status-message.aktif { background: #e8f5e9; border: 2px solid #2e7d32; color: #1b5e20; }
+    .status-message.selesai { background: #e3f2fd; border: 2px solid #0d47a1; color: #0d47a1; }
+    .status-message.error { background: #ffebee; border: 2px solid #c62828; color: #c62828; }
   </style>
 </head>
 <body>
@@ -285,12 +298,12 @@
 </div>
 
 <!-- FOOTER -->
-<div class="footer">© 2026 SMP NEGERI 1 SOBANG | Absensi Online v2.5</div>
+<div class="footer">© 2026 SMP NEGERI 1 SOBANG | Absensi Online v2.6</div>
 
 
- <script>
+<script>
   // ==================== KONFIGURASI ====================
-  var API_URL = 'https://script.google.com/macros/s/AKfycbyQv0jz1mA1gihNxYc9TMkW9QbBum3C3vK9Z1GnVx4b2aiuPpiZ5aTuAaGWXutdzywBdA/exec'; // Ganti dengan URL Web App Anda
+  var API_URL = 'https://script.google.com/macros/s/AKfycbygJyvGGq6fTtMq4euuepoSp1RMh8msc0yocQPYp_1wMAO8OqxQYThbH6jZSSjZobRO/exec'; // Ganti dengan URL Web App Anda
  
   // ==================== GLOBAL ====================
   var currentUser = null;
@@ -511,7 +524,6 @@
   }
   
   // ==================== DASHBOARD ====================
- 
   function loadDashboard() {
     var main = document.getElementById('main-content');
     if (!main) return;
@@ -527,7 +539,7 @@
       </div>
       <div class="card">
         <h3 class="card-title">📋 Rekap Kehadiran Hari Ini</h3>
-        <div id="status-sesi-global" style="padding:10px;background:#f5f5f5;border-radius:6px;margin-bottom:10px;text-align:center;font-weight:600;"></div>
+        <div id="status-sesi-global"></div>
         <div id="rekap-hari-ini" class="loading"><span class="spinner"></span> Memuat rekap...</div>
       </div>
     `;
@@ -599,7 +611,7 @@
             html += `
               <div class="session-card ${isActive ? 'active' : ''}">
                 <div class="sesi-name">${sesi.sesi || 'Sesi'}</div>
-                <div class="sesi-time">🕐 ${mulai} - ${tepat} (Tepat) | ${tepat} - ${terlambat} (Terlambat)</div>
+                <div class="sesi-time">🕐 ${mulai} - ${terlambat}</div>
                 <div class="sesi-status">${isActive ? '🟢 AKTIF' : '⏳ Tutup'}</div>
               </div>
             `;
@@ -610,8 +622,6 @@
         
         if (sesiAktif) {
           html += '<div style="grid-column:1/-1;background:#c8e6c9;padding:10px;border-radius:6px;text-align:center;border:2px solid #2e7d32;font-size:13px;font-weight:600;">🟢 Sesi Aktif: ' + sesiAktif.sesi + ' (' + sesiAktif.mulai + ' - ' + sesiAktif.terlambat + ')</div>';
-        } else {
-          html += '<div style="grid-column:1/-1;background:#fff3e0;padding:10px;border-radius:6px;text-align:center;border:2px solid #f57f17;font-size:13px;">⏳ Tidak ada sesi aktif saat ini</div>';
         }
         html += '</div>';
         container.innerHTML = html;
@@ -623,7 +633,7 @@
         }
       });
     
-    // Load rekap hari ini (hanya tampil saat sesi aktif)
+    // Load rekap hari ini
     jsonp('getRekapHariIni')
       .then(function(data) {
         var container = document.getElementById('rekap-hari-ini');
@@ -631,39 +641,40 @@
         if (!container) return;
         
         var sesiNames = data.sesiNames || ['Sesi 1', 'Sesi 2', 'Sesi 3'];
-        var isSesiAktif = data.isSesiAktif || false;
+        var statusSesi = data.statusSesi || {};
         
-        // Tampilkan status global
+        // Tampilkan status global dengan styling yang jelas
         if (statusContainer) {
-          var statusSesi = data.statusSesi || {};
-          if (statusSesi.global === 'belum_mulai') {
-            statusContainer.innerHTML = '🔔 ' + statusSesi.pesan;
-            statusContainer.style.background = '#fff3e0';
-            statusContainer.style.border = '2px solid #f57f17';
-            statusContainer.style.color = '#e65100';
-            container.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">⏳ ' + statusSesi.pesan + ' Data akan muncul saat sesi berlangsung.</p>';
-            return;
-          } else if (statusSesi.global === 'selesai') {
-            statusContainer.innerHTML = '✅ ' + statusSesi.pesan;
-            statusContainer.style.background = '#e8f5e9';
-            statusContainer.style.border = '2px solid #2e7d32';
-            statusContainer.style.color = '#1b5e20';
-            container.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">📊 ' + statusSesi.pesan + ' Rekap hari ini sudah tidak tersedia.</p>';
-            return;
-          } else {
-            statusContainer.innerHTML = '🟢 ' + statusSesi.pesan + ' Silakan lakukan scan absensi.';
-            statusContainer.style.background = '#e3f2fd';
-            statusContainer.style.border = '2px solid #0d47a1';
-            statusContainer.style.color = '#0d47a1';
-          }
+          var statusClass = statusSesi.global || 'error';
+          var iconMap = {
+            'belum_mulai': '🔔',
+            'aktif': '🟢',
+            'selesai': '✅',
+            'error': '❌'
+          };
+          var icon = iconMap[statusClass] || 'ℹ️';
+          statusContainer.innerHTML = `
+            <div class="status-message ${statusClass}">
+              ${icon} ${statusSesi.pesan || 'Status tidak diketahui'}
+            </div>
+          `;
         }
         
-        // Jika sesi tidak aktif, jangan tampilkan data
-        if (!isSesiAktif) {
-          container.innerHTML = '<p style="text-align:center;color:#999;padding:20px;">⏳ Tidak ada sesi aktif saat ini. Data akan muncul saat sesi berlangsung.</p>';
+        // Jika sesi tidak aktif, tampilkan pesan yang jelas
+        if (statusSesi.global !== 'aktif') {
+          var pesanAkhir = '';
+          if (statusSesi.global === 'selesai') {
+            pesanAkhir = '📊 ' + statusSesi.pesan + ' Rekap kehadiran hari ini sudah tidak tersedia.';
+          } else if (statusSesi.global === 'belum_mulai') {
+            pesanAkhir = '⏳ ' + statusSesi.pesan + ' Data kehadiran akan muncul saat sesi berlangsung.';
+          } else {
+            pesanAkhir = 'ℹ️ ' + (statusSesi.pesan || 'Tidak ada sesi aktif.');
+          }
+          container.innerHTML = '<p style="text-align:center;color:#666;padding:20px;">' + pesanAkhir + '</p>';
           return;
         }
         
+        // Sesi aktif - tampilkan data
         var html = '';
         
         // === REKAP GURU ===
@@ -687,19 +698,20 @@
             html += '</tr>';
           });
         } else {
-          html += '<tr><td colspan="' + (sesiNames.length + 3) + '" style="text-align:center;color:#999;">Belum ada data scan hari ini</td></tr>';
+          html += '<tr><td colspan="' + (sesiNames.length + 3) + '" style="text-align:center;color:#999;">Belum ada data scan guru hari ini</td></tr>';
         }
         html += '</table></div>';
         
         // === REKAP SISWA ===
         html += '<h4 style="margin:15px 0 8px;color:#0d47a1;">👨‍🎓 Rekap Siswa Hari Ini</h4>';
-        html += '<div class="rekap-table-wrap"><table class="rekap-table"><tr><th>No</th><th>Nama</th>';
+        html += '<div class="rekap-table-wrap"><table class="rekap-table"><tr><th>No</th><th>Nama</th><th>Kelas</th>';
         sesiNames.forEach(function(s) { html += '<th>' + s + '</th>'; });
         html += '<th>Jam Scan</th></tr>';
         
         if (data.siswa && data.siswa.length > 0) {
           data.siswa.forEach(function(row, i) {
             html += '<tr><td>' + (i+1) + '</td><td style="text-align:left;">' + row.nama + '</td>';
+            html += '<td>' + (row.kelas || '-') + '</td>';
             var jamText = '';
             sesiNames.forEach(function(sesi) {
               var status = row.status && row.status[sesi] ? row.status[sesi] : '-';
@@ -712,7 +724,7 @@
             html += '</tr>';
           });
         } else {
-          html += '<tr><td colspan="' + (sesiNames.length + 3) + '" style="text-align:center;color:#999;">Belum ada data scan hari ini</td></tr>';
+          html += '<tr><td colspan="' + (sesiNames.length + 4) + '" style="text-align:center;color:#999;">Belum ada data scan siswa hari ini</td></tr>';
         }
         html += '</table></div>';
         
@@ -725,7 +737,7 @@
           container.innerHTML = '<p style="color:red;">❌ Gagal memuat rekap: ' + (err.message || 'unknown') + '</p>';
         }
         if (statusContainer) {
-          statusContainer.innerHTML = '⚠️ Gagal memuat status sesi';
+          statusContainer.innerHTML = '<div class="status-message error">❌ Gagal memuat status sesi</div>';
         }
       });
   }
@@ -910,9 +922,14 @@
               <h4 style="color:#2e7d32;">${result.message}</h4>
               <p style="margin:3px 0;font-size:13px;">👤 ${result.data.nama}</p>
               <p style="margin:3px 0;font-size:13px;">📌 ${result.data.status} | ⏰ ${result.data.sesi}</p>
+              ${result.data.kelas ? '<p style="margin:3px 0;font-size:13px;">🏫 Kelas: ' + result.data.kelas + '</p>' : ''}
             </div>
           `;
           showToast('✅ ' + result.message, 'success');
+          // Refresh dashboard if on dashboard page
+          if (currentPage === 'dashboard') {
+            setTimeout(function() { loadDashboard(); }, 1000);
+          }
         } else {
           resultEl.innerHTML = `
             <div style="background:#ffebee;padding:12px;border-radius:6px;border-left:4px solid #c62828;">
@@ -1018,6 +1035,7 @@
           idEl.value = '';
           namaEl.value = '';
           ketEl.value = '';
+          if (currentPage === 'dashboard') setTimeout(function() { loadDashboard(); }, 500);
         } else {
           statusEl.innerHTML = '<div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;font-weight:600;">❌ ' + result.message + '</div>';
           showToast('❌ ' + result.message, 'error');
@@ -1036,6 +1054,9 @@
     var today = new Date();
     var firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
     
+    // Get list of classes for filter
+    var kelasOptions = '<option value="Semua">Semua Kelas</option>';
+    
     main.innerHTML = `
       <div class="card">
         <h2 class="card-title">📈 Rekap Absensi ${role === 'siswa' ? 'Siswa' : '(Siswa & Guru)'}</h2>
@@ -1048,25 +1069,51 @@
             <button class="btn btn-danger btn-sm" onclick="exportRekap('${role}','pdf')">📥 PDF</button>
           </div>
         </div>
+        ${role === 'siswa' ? `
+        <div class="form-group" style="margin-top:10px;">
+          <label>🏫 Filter Kelas</label>
+          <select id="rekap-kelas" onchange="loadRekapData('${role}')">
+            <option value="Semua">Semua Kelas</option>
+          </select>
+        </div>
+        ` : ''}
         <div id="rekap-hasil" style="margin-top:12px;"></div>
       </div>
     `;
+    
+    // Load kelas options if role is siswa
+    if (role === 'siswa') {
+      // Try to get kelas from existing data or use default
+      var kelasSelect = document.getElementById('rekap-kelas');
+      if (kelasSelect) {
+        // Add default classes
+        var kelasList = ['7A', '7B', '7C', '8A', '8B', '8C', '9A', '9B', '9C'];
+        kelasList.forEach(function(k) {
+          var opt = document.createElement('option');
+          opt.value = k;
+          opt.textContent = k;
+          kelasSelect.appendChild(opt);
+        });
+      }
+    }
   }
   
   function loadRekapData(role) {
     var tglMulaiEl = document.getElementById('rekap-tgl-mulai');
     var tglSelesaiEl = document.getElementById('rekap-tgl-selesai');
     var hasilEl = document.getElementById('rekap-hasil');
+    var kelasEl = document.getElementById('rekap-kelas');
     
     if (!tglMulaiEl || !tglSelesaiEl || !hasilEl) return;
     
     var tglMulai = tglMulaiEl.value;
     var tglSelesai = tglSelesaiEl.value;
+    var kelas = kelasEl ? kelasEl.value : 'Semua';
     if (!tglMulai || !tglSelesai) { showToast('Pilih periode!', 'error'); return; }
     
     hasilEl.innerHTML = '<div class="loading"><span class="spinner"></span> Memuat data...</div>';
     
-    jsonp('getRekap', { role: role, tglMulai: tglMulai, tglSelesai: tglSelesai })
+    jsonp('getRekap', { role: role, tglMulai: tglMulai, tglSelesai: tglSelesai, kelas: kelas })
       .then(function(data) {
         if (!data || !data.data || data.data.length === 0) {
           hasilEl.innerHTML = '<p style="color:orange;padding:10px;">⚠️ Tidak ada data untuk periode ini</p>';
@@ -1080,6 +1127,7 @@
             <div class="stat-mini"><span class="number">${data.stats.sakit || 0}</span><span class="label">Sakit</span></div>
             <div class="stat-mini danger"><span class="number">${data.stats.alpa || 0}</span><span class="label">Alpa</span></div>
             <div class="stat-mini danger"><span class="number">${data.stats.bolos || 0}</span><span class="label">Bolos</span></div>
+            <div class="stat-mini"><span class="number">${data.stats.total || 0}</span><span class="label">Total</span></div>
           </div>
           <div class="rekap-table-wrap"><table class="rekap-table"><tr>`;
         data.headers.forEach(function(h) { html += '<th>' + h + '</th>'; });
@@ -1101,15 +1149,17 @@
   function exportRekap(role, format) {
     var tglMulaiEl = document.getElementById('rekap-tgl-mulai');
     var tglSelesaiEl = document.getElementById('rekap-tgl-selesai');
+    var kelasEl = document.getElementById('rekap-kelas');
     if (!tglMulaiEl || !tglSelesaiEl) return;
     
     var tglMulai = tglMulaiEl.value;
     var tglSelesai = tglSelesaiEl.value;
+    var kelas = kelasEl ? kelasEl.value : 'Semua';
     if (!tglMulai || !tglSelesai) { showToast('Pilih periode!', 'error'); return; }
     
     showToast('⏳ Memproses...', 'info');
     
-    jsonp('exportData', { role: role, tglMulai: tglMulai, tglSelesai: tglSelesai, format: format })
+    jsonp('exportData', { role: role, tglMulai: tglMulai, tglSelesai: tglSelesai, format: format, kelas: kelas })
       .then(function(result) {
         if (result.success) {
           var blob = new Blob([result.data], { type: result.type });
