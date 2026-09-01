@@ -221,17 +221,19 @@
       color: #666;
       font-size: 13px;
     }
-    .loading::after {
-      content: '...';
-      animation: dots 1.5s steps(4) infinite;
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #0d47a1;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
     }
-    @keyframes dots {
-      0% { content: ''; }
-      25% { content: '.'; }
-      50% { content: '..'; }
-      75% { content: '...'; }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
-    
     .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
     .text-center { text-align: center; }
     .mt-10 { margin-top: 10px; }
@@ -281,8 +283,6 @@
       height: 16px;
       cursor: pointer;
     }
-
-
     .izin-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -342,7 +342,7 @@
 
 <script>
   // ==================== KONFIGURASI ====================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbxp944RCfX9zSz1mQbP_q6WL8y3mqh4qQ-38hTDOCPdxPNO5eVSJbDyZZcg5IZXEAJC9A/exec'; // Ganti dengan URL Web App Anda
+  const API_URL = 'https://script.google.com/macros/s/AKfycbzrIRUgmFOF8xtsQVZ42wOWW_w0K7WXpkH3yUszhB_idWGzJA7GpxO3fS1l1XDHZJmmug/exec'; // Ganti dengan URL Web App Anda
   
   // ==================== GLOBAL ====================
   let currentUser = null;
@@ -575,38 +575,50 @@
         showToast('Gagal memuat dashboard', 'error');
       });
     
-    // Load session info (sync dengan Google Sheet)
-    jsonp('getWaktuOperasional')
-      .then(data => {
-        const now = new Date();
-        const jam = now.toTimeString().slice(0,5);
-        
-        let html = '<div class="session-info">';
-        let sesiAktif = null;
-        
-        data.forEach(sesi => {
-          const isActive = jam >= sesi.mulai && jam <= sesi.terlambat;
-          if (isActive) sesiAktif = sesi;
-          html += `
-            <div class="session-card ${isActive ? 'active' : ''}">
-              <div class="sesi-name">${sesi.sesi}</div>
-              <div class="sesi-time">🕐 ${sesi.mulai} - ${sesi.tepat} (Tepat) | ${sesi.tepat} - ${sesi.terlambat} (Terlambat)</div>
-              <div class="sesi-status">${isActive ? '🟢 AKTIF' : '⏳ Tutup'}</div>
-            </div>
-          `;
+
+      // ===== BAGIAN SESSION INFO DI DASHBOARD =====
+      jsonp('getWaktuOperasional')
+        .then(data => {
+          const now = new Date();
+          const jam = now.toTimeString().slice(0,5);
+          
+          let html = '<div class="session-info">';
+          let sesiAktif = null;
+          
+          if (data && data.length > 0) {
+            data.forEach(sesi => {
+              // Format waktu dengan benar
+              const mulai = sesi.mulai ? sesi.mulai.toString().slice(0,5) : '--:--';
+              const tepat = sesi.tepat ? sesi.tepat.toString().slice(0,5) : '--:--';
+              const terlambat = sesi.terlambat ? sesi.terlambat.toString().slice(0,5) : '--:--';
+              
+              const isActive = jam >= mulai && jam <= terlambat;
+              if (isActive) sesiAktif = sesi;
+              
+              html += `
+                <div class="session-card ${isActive ? 'active' : ''}">
+                  <div class="sesi-name">${sesi.sesi || 'Sesi'}</div>
+                  <div class="sesi-time">🕐 ${mulai} - ${tepat} (Tepat) | ${tepat} - ${terlambat} (Terlambat)</div>
+                  <div class="sesi-status">${isActive ? '🟢 AKTIF' : '⏳ Tutup'}</div>
+                </div>
+              `;
+            });
+          } else {
+            html += `<div style="grid-column:1/-1;text-align:center;color:#999;padding:10px;">⚠️ Belum ada sesi scan</div>`;
+          }
+          
+          if (sesiAktif) {
+            html += `<div style="grid-column:1/-1;background:#c8e6c9;padding:10px;border-radius:6px;text-align:center;border:2px solid #2e7d32;font-size:13px;font-weight:600;">🟢 Sesi Aktif: ${sesiAktif.sesi}</div>`;
+          } else {
+            html += `<div style="grid-column:1/-1;background:#fff3e0;padding:10px;border-radius:6px;text-align:center;border:2px solid #f57f17;font-size:13px;">⏳ Tidak ada sesi aktif</div>`;
+          }
+          html += '</div>';
+          document.getElementById('session-info').innerHTML = html;
+        })
+        .catch((err) => {
+          document.getElementById('session-info').innerHTML = '<p style="color:red;">❌ Gagal memuat jadwal: ' + (err.message || 'unknown') + '</p>';
+          console.error(err);
         });
-        
-        if (sesiAktif) {
-          html += `<div style="grid-column:1/-1;background:#c8e6c9;padding:10px;border-radius:6px;text-align:center;border:2px solid #2e7d32;font-size:13px;font-weight:600;">🟢 Sesi Aktif: ${sesiAktif.sesi}</div>`;
-        } else {
-          html += `<div style="grid-column:1/-1;background:#fff3e0;padding:10px;border-radius:6px;text-align:center;border:2px solid #f57f17;font-size:13px;">⏳ Tidak ada sesi aktif</div>`;
-        }
-        html += '</div>';
-        document.getElementById('session-info').innerHTML = html;
-      })
-      .catch(() => {
-        document.getElementById('session-info').innerHTML = '<p style="color:red;">❌ Gagal memuat jadwal</p>';
-      });
     
     // Load rekap hari ini
     jsonp('getRekapHariIni')
@@ -701,7 +713,7 @@
     if (!nisn) { showToast('Masukkan NISN!', 'error'); return; }
     
     const hasil = document.getElementById('ortu-hasil');
-    hasil.innerHTML = '<div class="loading">Mencari data...</div>';
+    hasil.innerHTML = '<div class="loading"><span class="spinner"></span> Memuat data...</div>';
     
     jsonp('cekAbsensiSiswa', { nisn, tglMulai, tglSelesai })
       .then(data => {
@@ -815,7 +827,7 @@
   
     function handleScanResult(barcodeData, role) {
     const resultEl = document.getElementById('scan-result');
-    resultEl.innerHTML = '<div class="loading">⏳ Memproses...</div>';
+    resultEl.innerHTML = `<div class="loading"><span class="spinner"></span> ✖ Memproses...</div>`;
     
     jsonp('scanQR', { barcodeData, role })
       .then(result => {
@@ -964,7 +976,7 @@
     if (!tglMulai || !tglSelesai) { showToast('Pilih periode!', 'error'); return; }
     
     const hasil = document.getElementById('rekap-hasil');
-    hasil.innerHTML = '<div class="loading">Memuat data...</div>';
+    hasil.innerHTML = '<div class="loading"><span class="spinner"></span> Memuat data...</div>';
     
     jsonp('getRekap', { role, tglMulai, tglSelesai })
       .then(data => {
