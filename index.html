@@ -289,7 +289,9 @@
 
 <script>
   // ==================== KONFIGURASI ====================
-  var API_URL = 'https://script.google.com/macros/s/AKfycbw2Z1K4TDBoQIfcRVgnUCPuicriGXjgd0eXA_Mpq9Ee-xwsG4mfBpBtt0FavOQnuMKCRw/exec'; // Ganti dengan URL Web App Anda
+ <script>
+  // ==================== KONFIGURASI ====================
+  var API_URL = 'https://script.google.com/macros/s/AKfycbxc7_NIAuV6T38kqqmBI-qkz4JmpdO9orxtHpUJfkGDhnQzDpT5V-6lmZnqEZm3gBpjoQ/exec'; // Ganti dengan URL Web App Anda
   
   // ==================== GLOBAL ====================
   var currentUser = null;
@@ -316,7 +318,6 @@
     var isAdmin = isLoggedIn && currentUser.role === 'admin';
     var isGuru = isLoggedIn && currentUser.role === 'guru';
     
-    // Admin bisa lihat semua menu (guru + admin)
     var showGuruMenu = isGuru || isAdmin;
     var showAdminMenu = isAdmin;
     
@@ -510,36 +511,40 @@
     // Load stats
     jsonp('getDashboardStats')
       .then(function(data) {
+        if (!data || typeof data !== 'object') {
+          document.getElementById('dashboard-stats').innerHTML = '<p style="color:red;">❌ Data tidak valid</p>';
+          return;
+        }
         var html = `
           <div class="dashboard-grid">
             <div class="stat-section">
-              <h4>👨‍🏫 GURU (${data.totalGuru})</h4>
+              <h4>👨‍🏫 GURU (${data.totalGuru || 0})</h4>
               <div class="stat-mini-grid">
-                <div class="stat-mini success"><span class="number">${data.guru.hadir}</span><span class="label">Hadir</span></div>
-                <div class="stat-mini warning"><span class="number">${data.guru.terlambat}</span><span class="label">Terlambat</span></div>
-                <div class="stat-mini"><span class="number">${data.guru.izin}</span><span class="label">Izin</span></div>
-                <div class="stat-mini"><span class="number">${data.guru.sakit}</span><span class="label">Sakit</span></div>
-                <div class="stat-mini danger"><span class="number">${data.guru.alpa}</span><span class="label">Alpa</span></div>
-                <div class="stat-mini danger"><span class="number">${data.guru.bolos}</span><span class="label">Bolos</span></div>
+                <div class="stat-mini success"><span class="number">${data.guru?.hadir || 0}</span><span class="label">Hadir</span></div>
+                <div class="stat-mini warning"><span class="number">${data.guru?.terlambat || 0}</span><span class="label">Terlambat</span></div>
+                <div class="stat-mini"><span class="number">${data.guru?.izin || 0}</span><span class="label">Izin</span></div>
+                <div class="stat-mini"><span class="number">${data.guru?.sakit || 0}</span><span class="label">Sakit</span></div>
+                <div class="stat-mini danger"><span class="number">${data.guru?.alpa || 0}</span><span class="label">Alpa</span></div>
+                <div class="stat-mini danger"><span class="number">${data.guru?.bolos || 0}</span><span class="label">Bolos</span></div>
               </div>
             </div>
             <div class="stat-section">
-              <h4>👨‍🎓 SISWA (${data.totalSiswa})</h4>
+              <h4>👨‍🎓 SISWA (${data.totalSiswa || 0})</h4>
               <div class="stat-mini-grid">
-                <div class="stat-mini success"><span class="number">${data.siswa.hadir}</span><span class="label">Hadir</span></div>
-                <div class="stat-mini warning"><span class="number">${data.siswa.terlambat}</span><span class="label">Terlambat</span></div>
-                <div class="stat-mini"><span class="number">${data.siswa.izin}</span><span class="label">Izin</span></div>
-                <div class="stat-mini"><span class="number">${data.siswa.sakit}</span><span class="label">Sakit</span></div>
-                <div class="stat-mini danger"><span class="number">${data.siswa.alpa}</span><span class="label">Alpa</span></div>
-                <div class="stat-mini danger"><span class="number">${data.siswa.bolos}</span><span class="label">Bolos</span></div>
+                <div class="stat-mini success"><span class="number">${data.siswa?.hadir || 0}</span><span class="label">Hadir</span></div>
+                <div class="stat-mini warning"><span class="number">${data.siswa?.terlambat || 0}</span><span class="label">Terlambat</span></div>
+                <div class="stat-mini"><span class="number">${data.siswa?.izin || 0}</span><span class="label">Izin</span></div>
+                <div class="stat-mini"><span class="number">${data.siswa?.sakit || 0}</span><span class="label">Sakit</span></div>
+                <div class="stat-mini danger"><span class="number">${data.siswa?.alpa || 0}</span><span class="label">Alpa</span></div>
+                <div class="stat-mini danger"><span class="number">${data.siswa?.bolos || 0}</span><span class="label">Bolos</span></div>
               </div>
             </div>
           </div>
         `;
         document.getElementById('dashboard-stats').innerHTML = html;
       })
-      .catch(function() {
-        document.getElementById('dashboard-stats').innerHTML = '<p style="color:red;">❌ Gagal memuat statistik</p>';
+      .catch(function(err) {
+        document.getElementById('dashboard-stats').innerHTML = '<p style="color:red;">❌ Gagal memuat statistik: ' + (err.message || 'unknown') + '</p>';
       });
     
     // Load session info
@@ -569,7 +574,7 @@
             `;
           });
         } else {
-          html += '<div style="grid-column:1/-1;text-align:center;color:#999;padding:10px;">⚠️ Belum ada sesi scan</div>';
+          html += '<div style="grid-column:1/-1;text-align:center;color:#999;padding:10px;">⚠️ Belum ada sesi scan. Atur di Pengaturan.</div>';
         }
         
         if (sesiAktif) {
@@ -580,8 +585,8 @@
         html += '</div>';
         document.getElementById('session-info').innerHTML = html;
       })
-      .catch(function() {
-        document.getElementById('session-info').innerHTML = '<p style="color:red;">❌ Gagal memuat jadwal</p>';
+      .catch(function(err) {
+        document.getElementById('session-info').innerHTML = '<p style="color:red;">❌ Gagal memuat jadwal: ' + (err.message || 'unknown') + '</p>';
       });
     
     // Load rekap hari ini
@@ -602,7 +607,7 @@
           data.guru.forEach(function(row, i) {
             html += '<tr><td>' + (i+1) + '</td><td style="text-align:left;">' + row.nama + '</td>';
             sesiNames.forEach(function(sesi) {
-              var status = row.status[sesi] || '-';
+              var status = row.status && row.status[sesi] ? row.status[sesi] : '-';
               html += '<td>' + renderStatus(status) + '</td>';
             });
             html += '</tr>';
@@ -622,7 +627,7 @@
           data.siswa.forEach(function(row, i) {
             html += '<tr><td>' + (i+1) + '</td><td style="text-align:left;">' + row.nama + '</td>';
             sesiNames.forEach(function(sesi) {
-              var status = row.status[sesi] || '-';
+              var status = row.status && row.status[sesi] ? row.status[sesi] : '-';
               html += '<td>' + renderStatus(status) + '</td>';
             });
             html += '</tr>';
@@ -695,7 +700,7 @@
     
     jsonp('cekAbsensiSiswa', { nisn: nisn, tglMulai: tglMulai, tglSelesai: tglSelesai })
       .then(function(data) {
-        if (data.length === 0) {
+        if (!data || data.length === 0) {
           hasil.innerHTML = '<p style="color:orange;padding:10px;">⚠️ Tidak ada data untuk periode ini</p>';
           return;
         }
@@ -708,8 +713,8 @@
         html += '</table></div>';
         hasil.innerHTML = html;
       })
-      .catch(function() {
-        hasil.innerHTML = '<p style="color:red;">❌ Gagal memuat data</p>';
+      .catch(function(err) {
+        hasil.innerHTML = '<p style="color:red;">❌ Gagal memuat data: ' + (err.message || 'unknown') + '</p>';
       });
   }
   
@@ -823,8 +828,8 @@
         }
         document.getElementById('scan-status').textContent = '📷 Siap scan lagi';
       })
-      .catch(function() {
-        resultEl.innerHTML = '<div style="background:#ffebee;padding:12px;border-radius:6px;color:#c62828;">❌ Gagal memproses scan</div>';
+      .catch(function(err) {
+        resultEl.innerHTML = '<div style="background:#ffebee;padding:12px;border-radius:6px;color:#c62828;">❌ Gagal memproses scan: ' + (err.message || 'unknown') + '</div>';
         showToast('Gagal memproses scan', 'error');
       });
   }
@@ -913,8 +918,8 @@
           showToast('❌ ' + result.message, 'error');
         }
       })
-      .catch(function() {
-        statusEl.innerHTML = '<div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;">❌ Gagal menyimpan</div>';
+      .catch(function(err) {
+        statusEl.innerHTML = '<div style="background:#ffebee;padding:10px;border-radius:6px;color:#c62828;">❌ Gagal menyimpan: ' + (err.message || 'unknown') + '</div>';
         showToast('❌ Gagal menyimpan data', 'error');
       });
   }
@@ -952,14 +957,18 @@
     
     jsonp('getRekap', { role: role, tglMulai: tglMulai, tglSelesai: tglSelesai })
       .then(function(data) {
+        if (!data || !data.data || data.data.length === 0) {
+          hasil.innerHTML = '<p style="color:orange;padding:10px;">⚠️ Tidak ada data untuk periode ini</p>';
+          return;
+        }
         var html = `
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:4px;margin-bottom:12px;">
-            <div class="stat-mini success"><span class="number">${data.stats.hadir}</span><span class="label">Hadir</span></div>
-            <div class="stat-mini warning"><span class="number">${data.stats.terlambat}</span><span class="label">Terlambat</span></div>
-            <div class="stat-mini"><span class="number">${data.stats.izin}</span><span class="label">Izin</span></div>
-            <div class="stat-mini"><span class="number">${data.stats.sakit}</span><span class="label">Sakit</span></div>
-            <div class="stat-mini danger"><span class="number">${data.stats.alpa}</span><span class="label">Alpa</span></div>
-            <div class="stat-mini danger"><span class="number">${data.stats.bolos}</span><span class="label">Bolos</span></div>
+            <div class="stat-mini success"><span class="number">${data.stats.hadir || 0}</span><span class="label">Hadir</span></div>
+            <div class="stat-mini warning"><span class="number">${data.stats.terlambat || 0}</span><span class="label">Terlambat</span></div>
+            <div class="stat-mini"><span class="number">${data.stats.izin || 0}</span><span class="label">Izin</span></div>
+            <div class="stat-mini"><span class="number">${data.stats.sakit || 0}</span><span class="label">Sakit</span></div>
+            <div class="stat-mini danger"><span class="number">${data.stats.alpa || 0}</span><span class="label">Alpa</span></div>
+            <div class="stat-mini danger"><span class="number">${data.stats.bolos || 0}</span><span class="label">Bolos</span></div>
           </div>
           <div class="rekap-table-wrap"><table class="rekap-table"><tr>`;
         data.headers.forEach(function(h) { html += '<th>' + h + '</th>'; });
@@ -972,8 +981,8 @@
         html += '</table></div>';
         hasil.innerHTML = html;
       })
-      .catch(function() {
-        hasil.innerHTML = '<p style="color:red;">❌ Gagal memuat data</p>';
+      .catch(function(err) {
+        hasil.innerHTML = '<p style="color:red;">❌ Gagal memuat data: ' + (err.message || 'unknown') + '</p>';
         showToast('Gagal memuat rekap', 'error');
       });
   }
@@ -998,10 +1007,12 @@
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
           showToast('✅ Download berhasil!', 'success');
+        } else {
+          showToast('❌ ' + (result.message || 'Gagal export'), 'error');
         }
       })
-      .catch(function() {
-        showToast('❌ Gagal export data', 'error');
+      .catch(function(err) {
+        showToast('❌ Gagal export data: ' + (err.message || 'unknown'), 'error');
       });
   }
   
@@ -1020,8 +1031,8 @@
       jsonp('getWaktuOperasional')
     ])
     .then(function(results) {
-      var settings = results[0];
-      var sesiData = results[1];
+      var settings = results[0] || {};
+      var sesiData = results[1] || [];
       
       var html = '';
       
@@ -1059,31 +1070,35 @@
           <p style="font-size:11px;color:#666;margin-bottom:8px;">Format: HH:MM (contoh: 06:00)</p>
       `;
       
-      sesiData.forEach(function(sesi) {
-        var num = sesi.sesi.replace('Sesi ', '');
-        html += `
-          <div style="margin-bottom:6px;background:#fff;padding:8px;border-radius:4px;border:1px solid #eee;">
-            <label style="font-weight:600;font-size:11px;display:block;margin-bottom:3px;color:#0d47a1;">${sesi.sesi}</label>
-            <div class="row">
-              <div class="form-group">
-                <label style="font-size:9px;color:#888;">Mulai</label>
-                <input type="time" id="sesi-${num}-mulai" value="${sesi.mulai}" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:100%;">
-              </div>
-              <div class="form-group">
-                <label style="font-size:9px;color:#888;">Tepat</label>
-                <input type="time" id="sesi-${num}-tepat" value="${sesi.tepat}" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:100%;">
-              </div>
-              <div class="form-group">
-                <label style="font-size:9px;color:#888;">Terlambat</label>
-                <input type="time" id="sesi-${num}-terlambat" value="${sesi.terlambat}" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:100%;">
-              </div>
-              <div style="display:flex;align-items:end;padding-bottom:2px;">
-                <span style="font-size:10px;color:#999;">${sesi.mulai} - ${sesi.terlambat}</span>
+      if (sesiData.length > 0) {
+        sesiData.forEach(function(sesi) {
+          var num = sesi.sesi.replace('Sesi ', '');
+          html += `
+            <div style="margin-bottom:6px;background:#fff;padding:8px;border-radius:4px;border:1px solid #eee;">
+              <label style="font-weight:600;font-size:11px;display:block;margin-bottom:3px;color:#0d47a1;">${sesi.sesi}</label>
+              <div class="row">
+                <div class="form-group">
+                  <label style="font-size:9px;color:#888;">Mulai</label>
+                  <input type="time" id="sesi-${num}-mulai" value="${sesi.mulai}" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:100%;">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:9px;color:#888;">Tepat</label>
+                  <input type="time" id="sesi-${num}-tepat" value="${sesi.tepat}" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:100%;">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:9px;color:#888;">Terlambat</label>
+                  <input type="time" id="sesi-${num}-terlambat" value="${sesi.terlambat}" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:100%;">
+                </div>
+                <div style="display:flex;align-items:end;padding-bottom:2px;">
+                  <span style="font-size:10px;color:#999;">${sesi.mulai} - ${sesi.terlambat}</span>
+                </div>
               </div>
             </div>
-          </div>
-        `;
-      });
+          `;
+        });
+      } else {
+        html += '<p style="color:#999;font-size:12px;">⚠️ Belum ada sesi scan. Tambahkan di sheet SESI_SCAN.</p>';
+      }
       
       html += `
           <button class="btn btn-sm btn-warning" onclick="updateWaktuSesi()" style="width:100%;padding:8px;">💾 Simpan Waktu Sesi</button>
@@ -1118,8 +1133,8 @@
       
       document.getElementById('pengaturan-content').innerHTML = html;
     })
-    .catch(function() {
-      document.getElementById('pengaturan-content').innerHTML = '<p style="color:red;">❌ Gagal memuat pengaturan</p>';
+    .catch(function(err) {
+      document.getElementById('pengaturan-content').innerHTML = '<p style="color:red;">❌ Gagal memuat pengaturan: ' + (err.message || 'unknown') + '</p>';
       showToast('Gagal memuat pengaturan', 'error');
     });
   }
@@ -1153,13 +1168,17 @@
     showToast('⏳ Menyimpan...', 'info');
     
     jsonp('updatePengaturan', { key: 'ACTIVE_SESI', value: value })
-      .then(function() {
-        showToast('✅ Sesi aktif berhasil diupdate!', 'success');
-        loadPengaturan();
-        if (currentPage === 'dashboard') loadDashboard();
+      .then(function(result) {
+        if (result && result.success) {
+          showToast('✅ Sesi aktif berhasil diupdate!', 'success');
+          loadPengaturan();
+          if (currentPage === 'dashboard') loadDashboard();
+        } else {
+          throw new Error(result?.message || 'Gagal menyimpan');
+        }
       })
-      .catch(function() {
-        showToast('❌ Gagal update sesi aktif', 'error');
+      .catch(function(err) {
+        showToast('❌ Gagal update sesi aktif: ' + (err.message || 'unknown'), 'error');
       });
   }
   
@@ -1233,8 +1252,8 @@
         document.getElementById('libur-keterangan').value = '';
         loadPengaturan();
       })
-      .catch(function() {
-        showToast('❌ Gagal menambahkan', 'error');
+      .catch(function(err) {
+        showToast('❌ Gagal menambahkan: ' + (err.message || 'unknown'), 'error');
       });
   }
   
@@ -1245,8 +1264,8 @@
         showToast('✅ Dihapus', 'success');
         loadPengaturan();
       })
-      .catch(function() {
-        showToast('❌ Gagal menghapus', 'error');
+      .catch(function(err) {
+        showToast('❌ Gagal menghapus: ' + (err.message || 'unknown'), 'error');
       });
   }
   
