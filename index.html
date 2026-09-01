@@ -241,29 +241,78 @@
     .flex { display: flex; gap: 8px; flex-wrap: wrap; }
     .flex-center { display: flex; align-items: center; justify-content: center; gap: 8px; }
     
-    .setting-group {
-      border: 1px solid #e0e0e0;
-      border-radius: 8px;
-      padding: 12px;
-      margin-bottom: 12px;
-      background: #fafafa;
-    }
-    .setting-group h4 {
-      color: #1a237e;
-      margin-bottom: 8px;
-      font-size: 13px;
-    }
-    .setting-group .row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr 1fr;
-      gap: 8px;
-      align-items: end;
-    }
-    @media (max-width: 600px) {
-      .setting-group .row {
-        grid-template-columns: 1fr 1fr;
+    /* ===== PENGATURAN SESI - MOBILE FRIENDLY ===== */
+      .setting-group {
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 12px;
+        background: #fafafa;
       }
-    }
+      .setting-group h4 {
+        color: #1a237e;
+        margin-bottom: 8px;
+        font-size: 13px;
+      }
+
+      /* Desktop: 4 kolom */
+      .setting-group .row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: 8px;
+        align-items: center;
+      }
+
+      /* Mobile: 2 kolom dengan label di atas */
+      @media (max-width: 600px) {
+        .setting-group .row {
+          grid-template-columns: 1fr 1fr;
+          gap: 6px;
+        }
+        .setting-group .row .form-group label {
+          font-size: 10px;
+        }
+        .setting-group .row .form-group input {
+          padding: 4px 6px;
+          font-size: 11px;
+          width: 100%;
+        }
+      }
+
+      /* Label sesi di mobile lebih kecil */
+      @media (max-width: 600px) {
+        .setting-group > label {
+          font-size: 12px;
+          display: block;
+          margin-bottom: 4px;
+          font-weight: 600;
+        }
+      }
+
+      /* Input time lebih kecil di mobile */
+      .setting-group .row .form-group input[type="time"] {
+        padding: 6px 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 13px;
+        width: 100%;
+      }
+      @media (max-width: 600px) {
+        .setting-group .row .form-group input[type="time"] {
+          padding: 4px 4px;
+          font-size: 11px;
+          min-width: 60px;
+        }
+      }
+
+      /* Tombol simpan di mobile */
+      @media (max-width: 600px) {
+        .btn-sm {
+          padding: 6px 12px;
+          font-size: 11px;
+          width: 100%;
+        }
+      }
     .setting-group .row .form-group { margin-bottom: 0; }
     .checkbox-group {
       display: flex;
@@ -342,7 +391,7 @@
 
 <script>
   // ==================== KONFIGURASI ====================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbzrIRUgmFOF8xtsQVZ42wOWW_w0K7WXpkH3yUszhB_idWGzJA7GpxO3fS1l1XDHZJmmug/exec'; // Ganti dengan URL Web App Anda
+  const API_URL = 'https://script.google.com/macros/s/AKfycbwMelaWKXtU6mHrjFUZtjh3VIwRycnkr9Nztfhdsb6nZv3F4F9NsBg5jyKnxHsZNQGayQ/exec'; // Ganti dengan URL Web App Anda
   
   // ==================== GLOBAL ====================
   let currentUser = null;
@@ -1074,30 +1123,43 @@
       `;
       
       // ===== Waktu Sesi =====
-      html += `
-        <div class="setting-group">
-          <h4>⏰ Waktu Sesi</h4>
-          <p style="font-size:11px;color:#666;margin-bottom:8px;">Format: Jam Mulai, Jam Tepat, Jam Terlambat (contoh: 06:00,07:30,08:30)</p>
-      `;
-      
-      sesiData.forEach(sesi => {
-        const num = sesi.sesi.replace('Sesi ', '');
         html += `
-          <div style="margin-bottom:8px;">
-            <label style="font-weight:600;font-size:12px;">${sesi.sesi}</label>
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:3px;">
-              <input type="time" id="sesi-${num}-mulai" value="${sesi.mulai}" style="padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
-              <input type="time" id="sesi-${num}-tepat" value="${sesi.tepat}" style="padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
-              <input type="time" id="sesi-${num}-terlambat" value="${sesi.terlambat}" style="padding:5px 8px;border:1px solid #ddd;border-radius:4px;font-size:12px;">
-            </div>
-          </div>
+          <div class="setting-group">
+            <h4>⏰ Waktu Sesi</h4>
+            <p style="font-size:10px;color:#666;margin-bottom:6px;">Format: HH:MM (contoh: 06:00)</p>
         `;
-      });
-      
-      html += `
-          <button class="btn btn-sm btn-warning" onclick="updateWaktuSesi()">💾 Simpan Waktu Sesi</button>
-        </div>
-      `;
+
+        // Tampilkan 3 sesi dengan layout compact
+        sesiData.forEach(sesi => {
+          const num = sesi.sesi.replace('Sesi ', '');
+          html += `
+            <div style="margin-bottom:6px;background:#fff;padding:8px;border-radius:4px;border:1px solid #eee;">
+              <label style="font-weight:600;font-size:11px;display:block;margin-bottom:3px;color:#0d47a1;">${sesi.sesi}</label>
+              <div class="row">
+                <div class="form-group">
+                  <label style="font-size:9px;color:#888;">Mulai</label>
+                  <input type="time" id="sesi-${num}-mulai" value="${sesi.mulai}" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:100%;">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:9px;color:#888;">Tepat</label>
+                  <input type="time" id="sesi-${num}-tepat" value="${sesi.tepat}" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:100%;">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:9px;color:#888;">Terlambat</label>
+                  <input type="time" id="sesi-${num}-terlambat" value="${sesi.terlambat}" style="padding:4px 6px;border:1px solid #ddd;border-radius:4px;font-size:12px;width:100%;">
+                </div>
+                <div style="display:flex;align-items:end;padding-bottom:2px;">
+                  <span style="font-size:10px;color:#999;">${sesi.mulai} - ${sesi.terlambat}</span>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        html += `
+              <button class="btn btn-sm btn-warning" onclick="updateWaktuSesi()" style="width:100%;padding:8px;">💾 Simpan Waktu Sesi</button>
+            </div>
+          `;
       
       // ===== Hari Libur =====
       const liburList = Object.keys(settings).filter(k => k.startsWith('LIBUR_'));
