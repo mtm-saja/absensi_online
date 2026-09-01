@@ -391,7 +391,7 @@
 
 <script>
   // ==================== KONFIGURASI ====================
-  const API_URL = 'https://script.google.com/macros/s/AKfycbzkzGaJ8B0EhMgj9qF0nOOpyHrH1t0B1MfmD21hNEW2zKQCV4atZQdCOwcv6kyZjsNQ1g/exec'; // Ganti dengan URL Web App Anda
+  const API_URL = 'https://script.google.com/macros/s/AKfycbyfn0VUGB1dbl1GvMR35HvaGz6utsASeDsMMMe9KzI3pcy1FQ6JjvjebZdrSRebtnEbeg/exec'; // Ganti dengan URL Web App Anda
   
   // ==================== GLOBAL ====================
   let currentUser = null;
@@ -1241,59 +1241,66 @@
   }
   
   // ===== UPDATE WAKTU SESI =====
-  function updateWaktuSesi() {
-    const sesiData = [];
-    for (let i = 1; i <= 3; i++) {
-      const mulai = document.getElementById(`sesi-${i}-mulai`)?.value;
-      const tepat = document.getElementById(`sesi-${i}-tepat`)?.value;
-      const terlambat = document.getElementById(`sesi-${i}-terlambat`)?.value;
-      if (mulai && tepat && terlambat) {
-        sesiData.push({
-          sesi: `Sesi ${i}`,
-          mulai: mulai,
-          tepat: tepat,
-          terlambat: terlambat
-        });
+    function updateWaktuSesi() {
+      const sesiData = [];
+      for (let i = 1; i <= 3; i++) {
+        const mulai = document.getElementById(`sesi-${i}-mulai`)?.value;
+        const tepat = document.getElementById(`sesi-${i}-tepat`)?.value;
+        const terlambat = document.getElementById(`sesi-${i}-terlambat`)?.value;
+        
+        if (mulai && tepat && terlambat) {
+          // Pastikan format HH:MM
+          const formatTime = (val) => {
+            if (!val) return '';
+            const str = val.toString().trim();
+            if (str.length >= 5) return str.slice(0, 5);
+            return str;
+          };
+          
+          sesiData.push({
+            sesi: `Sesi ${i}`,
+            mulai: formatTime(mulai),
+            tepat: formatTime(tepat),
+            terlambat: formatTime(terlambat)
+          });
+        }
       }
+      
+      if (sesiData.length === 0) {
+        showToast('❌ Data sesi tidak lengkap!', 'error');
+        return;
+      }
+      
+      showToast('⏳ Menyimpan data...', 'info');
+      
+      // Simpan ke Google Sheets
+      jsonp('updateSesiScan', { sesiData: JSON.stringify(sesiData) })
+        .then((result) => {
+          if (result && result.success) {
+            showToast('✅ Waktu sesi berhasil disimpan!', 'success');
+            
+            // Update juga di PENGATURAN sebagai backup
+            const promises = [];
+            sesiData.forEach(s => {
+              const num = s.sesi.replace('Sesi ', '');
+              const value = `${s.mulai},${s.tepat},${s.terlambat}`;
+              promises.push(jsonp('updatePengaturan', { key: `SESI_${num}_JAM`, value: value }));
+            });
+            
+            return Promise.all(promises);
+          } else {
+            throw new Error(result?.message || 'Gagal menyimpan');
+          }
+        })
+        .then(() => {
+          showToast('✅ Semua data tersimpan!', 'success');
+          loadPengaturan(); // Refresh halaman
+        })
+        .catch((err) => {
+          showToast('❌ Gagal menyimpan: ' + (err.message || 'unknown'), 'error');
+          console.error(err);
+        });
     }
-    
-    if (sesiData.length === 0) {
-      showToast('❌ Data sesi tidak lengkap!', 'error');
-      return;
-    }
-    
-    showToast('⏳ Menyimpan data...', 'info');
-    
-    // Simpan ke Google Sheets via API
-    jsonp('updateSesiScan', { sesiData: JSON.stringify(sesiData) })
-      .then(() => {
-        showToast('✅ Waktu sesi berhasil disimpan!', 'success');
-        // Juga update di PENGATURAN sebagai backup
-        const sesiMap = {
-          1: sesiData.find(s => s.sesi === 'Sesi 1'),
-          2: sesiData.find(s => s.sesi === 'Sesi 2'),
-          3: sesiData.find(s => s.sesi === 'Sesi 3')
-        };
-        const promises = [];
-        if (sesiMap[1]) {
-          promises.push(jsonp('updatePengaturan', { key: 'SESI_1_JAM', value: `${sesiMap[1].mulai},${sesiMap[1].tepat},${sesiMap[1].terlambat}` }));
-        }
-        if (sesiMap[2]) {
-          promises.push(jsonp('updatePengaturan', { key: 'SESI_2_JAM', value: `${sesiMap[2].mulai},${sesiMap[2].tepat},${sesiMap[2].terlambat}` }));
-        }
-        if (sesiMap[3]) {
-          promises.push(jsonp('updatePengaturan', { key: 'SESI_3_JAM', value: `${sesiMap[3].mulai},${sesiMap[3].tepat},${sesiMap[3].terlambat}` }));
-        }
-        return Promise.all(promises);
-      })
-      .then(() => {
-        loadPengaturan(); // Refresh halaman
-      })
-      .catch((err) => {
-        showToast('❌ Gagal menyimpan: ' + (err.message || 'unknown'), 'error');
-        console.error(err);
-      });
-  }
   
   // ===== HARI LIBUR =====
   function addHariLibur() {
