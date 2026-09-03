@@ -594,7 +594,7 @@
         // ============================================================
         // KONFIGURASI - GANTI DENGAN URL WEB APP ANDA
         // ============================================================
-        var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw9-SRisWTQqojOSoyqqShv_-XU1jCQhTsN-zekNbfxwLcfAUbsDG1sT_pTCL7MESlvIQ/exec';
+        var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzieCz9gFlu3doSMztu2uX4s4_8MDJDlgUDgvjoDFikulx7820c8BefpzTBlbtlQM0QBA/exec';
         
         // ============================================================
         // GLOBAL VARIABLES
@@ -603,7 +603,6 @@
         var scannerStream = null;
         var isScanning = false;
         var currentLoginRole = 'guru';
-        var isInitialized = false;
         
         // ============================================================
         // UTILITY FUNCTIONS
@@ -617,7 +616,7 @@
             clearTimeout(toast._timeout);
             toast._timeout = setTimeout(function() {
                 toast.classList.add('hidden');
-            }, 3000);
+            }, 4000);
         }
         
         function formatDate(date) {
@@ -656,7 +655,7 @@
         }
         
         // ============================================================
-        // API CALL FUNCTION
+        // API CALL FUNCTION - DENGAN HANDLER YANG LEBIH BAIK
         // ============================================================
         function callScript(functionName, params, callback, errorCallback) {
             var url = SCRIPT_URL + '?action=' + encodeURIComponent(functionName);
@@ -678,11 +677,21 @@
                 mode: 'cors'
             })
             .then(function(response) {
-                return response.json();
+                return response.text();
             })
-            .then(function(data) {
-                console.log('📥 Response:', functionName, data);
-                if (callback) callback(data);
+            .then(function(text) {
+                console.log('📥 Raw response:', text.substring(0, 200));
+                
+                // Coba parse JSON
+                try {
+                    var data = JSON.parse(text);
+                    console.log('✅ Parsed JSON:', data);
+                    if (callback) callback(data);
+                } catch (e) {
+                    console.error('❌ Invalid JSON:', e.message);
+                    console.error('Response text:', text);
+                    if (callback) callback({ error: 'Invalid JSON response', raw: text });
+                }
             })
             .catch(function(error) {
                 console.error('❌ Fetch error:', error);
@@ -791,6 +800,7 @@
                     updateMenuVisibility();
                 } else {
                     var msg = result && result.message ? result.message : 'Login gagal!';
+                    if (result && result.error) msg = result.error;
                     showToast('❌ ' + msg, 'error');
                 }
             }, function(error) {
@@ -850,33 +860,38 @@
         // ============================================================
         function refreshDashboard() {
             callScript('getDashboardStats', {}, function(data) {
-                if (data && data.error) {
-                    showToast('⚠️ Error: ' + data.error, 'error');
+                console.log('Dashboard data:', data);
+                
+                if (!data || data.error) {
+                    console.warn('Dashboard error:', data ? data.error : 'No data');
+                    showToast('⚠️ Gagal memuat dashboard', 'error');
                     return;
                 }
                 
-                if (!data) {
-                    showToast('⚠️ Tidak ada data', 'error');
-                    return;
+                // Update statistik siswa
+                if (data.siswa) {
+                    document.getElementById('sTotal').textContent = data.siswa.total || 0;
+                    document.getElementById('sHadir').textContent = data.siswa.hadir || 0;
+                    document.getElementById('sTerlambat').textContent = data.siswa.terlambat || 0;
+                    document.getElementById('sIzin').textContent = data.siswa.izin || 0;
+                    document.getElementById('sSakit').textContent = data.siswa.sakit || 0;
+                    document.getElementById('sAlpa').textContent = data.siswa.alpa || 0;
+                    document.getElementById('sBolos').textContent = data.siswa.bolos || 0;
                 }
                 
-                document.getElementById('sTotal').textContent = (data.siswa && data.siswa.total) || 0;
-                document.getElementById('sHadir').textContent = (data.siswa && data.siswa.hadir) || 0;
-                document.getElementById('sTerlambat').textContent = (data.siswa && data.siswa.terlambat) || 0;
-                document.getElementById('sIzin').textContent = (data.siswa && data.siswa.izin) || 0;
-                document.getElementById('sSakit').textContent = (data.siswa && data.siswa.sakit) || 0;
-                document.getElementById('sAlpa').textContent = (data.siswa && data.siswa.alpa) || 0;
-                document.getElementById('sBolos').textContent = (data.siswa && data.siswa.bolos) || 0;
+                // Update statistik guru
+                if (data.guru) {
+                    document.getElementById('gTotal').textContent = data.guru.total || 0;
+                    document.getElementById('gHadir').textContent = data.guru.hadir || 0;
+                    document.getElementById('gTerlambat').textContent = data.guru.terlambat || 0;
+                    document.getElementById('gIzin').textContent = data.guru.izin || 0;
+                    document.getElementById('gSakit').textContent = data.guru.sakit || 0;
+                    document.getElementById('gAlpa').textContent = data.guru.alpa || 0;
+                    document.getElementById('gBolos').textContent = data.guru.bolos || 0;
+                }
                 
-                document.getElementById('gTotal').textContent = (data.guru && data.guru.total) || 0;
-                document.getElementById('gHadir').textContent = (data.guru && data.guru.hadir) || 0;
-                document.getElementById('gTerlambat').textContent = (data.guru && data.guru.terlambat) || 0;
-                document.getElementById('gIzin').textContent = (data.guru && data.guru.izin) || 0;
-                document.getElementById('gSakit').textContent = (data.guru && data.guru.sakit) || 0;
-                document.getElementById('gAlpa').textContent = (data.guru && data.guru.alpa) || 0;
-                document.getElementById('gBolos').textContent = (data.guru && data.guru.bolos) || 0;
-                
-                var rekap = (data.rekapHariIni) || [];
+                // Update rekap hari ini
+                var rekap = data.rekapHariIni || [];
                 var tbody = document.getElementById('rekapTableBody');
                 if (rekap.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #888; padding:20px;">Belum ada data hari ini</td></tr>';
@@ -903,11 +918,10 @@
         
         function loadSessionInfo() {
             callScript('getSessionInfo', {}, function(info) {
-                if (info && info.error) {
-                    console.warn('Session info error:', info.error);
+                if (!info || info.error) {
+                    console.warn('Session info error:', info ? info.error : 'No data');
                     return;
                 }
-                if (!info) return;
                 
                 document.getElementById('sessionTime').textContent = info.waktu || '--:--';
                 document.getElementById('sessionActive').textContent = info.currentSession || 'Tidak ada';
@@ -1132,8 +1146,8 @@
                     return;
                 }
                 
-                if (!settings) {
-                    document.getElementById('settingsContent').innerHTML = '<p style="color: red;">❌ Gagal memuat pengaturan</p>';
+                if (!settings || Object.keys(settings).length === 0) {
+                    document.getElementById('settingsContent').innerHTML = '<p style="color: #888;">Tidak ada pengaturan</p>';
                     return;
                 }
                 
@@ -1241,6 +1255,7 @@
                     showToast('✅ Sistem siap digunakan!', 'success');
                 } else {
                     var msg = result && result.message ? result.message : 'Gagal inisialisasi';
+                    if (result && result.error) msg = result.error;
                     console.warn('⚠️ ' + msg);
                     showToast('⚠️ ' + msg, 'error');
                 }
