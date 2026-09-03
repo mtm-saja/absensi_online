@@ -21,7 +21,6 @@
             flex-direction: column;
         }
         
-        /* ============ TOPBAR ============ */
         .topbar {
             background: linear-gradient(135deg, #1a237e 0%, #0d47a1 50%, #1565c0 100%);
             color: white;
@@ -129,7 +128,6 @@
             border-radius: 10px;
         }
         
-        /* ============ SIDEBAR ============ */
         .sidebar {
             position: fixed;
             top: 60px;
@@ -215,7 +213,6 @@
             color: #ef5350;
         }
         
-        /* ============ MAIN CONTENT ============ */
         .main-content {
             margin-left: 230px;
             margin-top: 60px;
@@ -224,7 +221,6 @@
             min-height: calc(100vh - 110px);
         }
         
-        /* ============ FOOTER ============ */
         .footer {
             background: white;
             border-top: 1px solid #e0e0e0;
@@ -244,7 +240,6 @@
             font-weight: 500;
         }
         
-        /* ============ PAGE ============ */
         .page {
             display: none;
             animation: fadeIn 0.3s ease;
@@ -271,7 +266,6 @@
             font-size: 22px;
         }
         
-        /* ============ STATS ============ */
         .stats-section {
             margin-bottom: 20px;
         }
@@ -347,7 +341,6 @@
         .stat-card.bolos { border-left-color: #d32f2f; }
         .stat-card.bolos .number { color: #d32f2f; }
         
-        /* ============ SESSION INFO ============ */
         .session-info {
             background: linear-gradient(135deg, #e8eaf6, #c5cae9);
             padding: 15px 20px;
@@ -389,7 +382,6 @@
         .status-badge.closed { background: #f44336; color: white; }
         .status-badge.late { background: #ff9800; color: white; }
         
-        /* ============ TABLE ============ */
         .table-container {
             background: white;
             border-radius: 12px;
@@ -464,8 +456,8 @@
         }
         .role-badge.siswa { background: #dbeafe; color: #1e40af; }
         .role-badge.guru { background: #d1fae5; color: #065f46; }
+        .role-badge.admin { background: #fef3c7; color: #92400e; }
         
-        /* ============ FORM ============ */
         .form-group {
             margin-bottom: 14px;
         }
@@ -558,7 +550,6 @@
             border-color: #1a237e;
         }
         
-        /* ============ SCANNER ============ */
         .scanner-container {
             background: white;
             border-radius: 12px;
@@ -590,7 +581,6 @@
         .scan-result.success { display: block; border-left: 3px solid #4caf50; }
         .scan-result.error { display: block; border-left: 3px solid #ef5350; }
         
-        /* ============ TOAST ============ */
         .toast {
             position: fixed;
             bottom: 70px;
@@ -614,7 +604,20 @@
         }
         .hidden { display: none !important; }
         
-        /* ============ RESPONSIVE ============ */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 998;
+        }
+        .sidebar-overlay.active {
+            display: block;
+        }
+        
         @media (max-width: 992px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -716,24 +719,9 @@
                 grid-template-columns: repeat(3, 1fr);
             }
         }
-        
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 60px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.3);
-            z-index: 998;
-        }
-        .sidebar-overlay.active {
-            display: block;
-        }
     </style>
 </head>
 <body>
-    <!-- ============ TOPBAR ============ -->
     <header class="topbar">
         <div class="topbar-left">
             <button class="menu-toggle" onclick="toggleSidebar()">
@@ -760,10 +748,8 @@
         </div>
     </header>
     
-    <!-- ============ SIDEBAR OVERLAY ============ -->
     <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
     
-    <!-- ============ SIDEBAR ============ -->
     <nav class="sidebar" id="sidebar">
         <div class="menu-section">
             <div class="section-title">Main Menu</div>
@@ -827,16 +813,14 @@
         </div>
     </nav>
     
-    <!-- ============ MAIN CONTENT ============ -->
     <main class="main-content" id="mainContent">
         
-        <!-- ========== PAGE: DASHBOARD ========== -->
+        <!-- PAGE: DASHBOARD -->
         <div class="page active" id="pageDashboard">
             <div class="page-title">
                 <i class="fas fa-home"></i> Dashboard
             </div>
             
-            <!-- STATISTIK SISWA -->
             <div class="stats-section">
                 <div class="stats-label">
                     <i class="fas fa-user-graduate" style="color:#1a237e;"></i> Statistik Siswa
@@ -880,7 +864,6 @@
                 </div>
             </div>
             
-            <!-- STATISTIK GURU -->
             <div class="stats-section">
                 <div class="stats-label">
                     <i class="fas fa-chalkboard-teacher" style="color:#0d47a1;"></i> Statistik Guru
@@ -924,7 +907,6 @@
                 </div>
             </div>
             
-            <!-- INFORMASI OPERASIONAL SESI SCAN -->
             <div class="session-info" id="sessionInfo">
                 <div class="session-item">
                     <div class="label">⏰ Waktu Saat Ini</div>
@@ -942,7 +924,6 @@
                 </div>
             </div>
             
-            <!-- REKAP KEHADIRAN HARI INI -->
             <div class="table-container">
                 <div class="table-header">
                     <h3><i class="fas fa-list"></i> Rekap Kehadiran Hari Ini</h3>
@@ -967,7 +948,7 @@
             </div>
         </div>
         
-        <!-- ========== PAGE: SEARCH ========== -->
+        <!-- PAGE: SEARCH -->
         <div class="page" id="pageSearch">
             <div class="page-title">
                 <i class="fas fa-search"></i> Cek Absensi Siswa
@@ -997,7 +978,7 @@
             </div>
         </div>
         
-        <!-- ========== PAGE: LOGIN ========== -->
+        <!-- PAGE: LOGIN -->
         <div class="page" id="pageLogin">
             <div class="page-title">
                 <i class="fas fa-sign-in-alt"></i> Login <span id="loginRoleTitle">Guru</span>
@@ -1018,7 +999,7 @@
             </div>
         </div>
         
-        <!-- ========== PAGE: SCANNER ========== -->
+        <!-- PAGE: SCANNER -->
         <div class="page" id="pageScanner">
             <div class="page-title">
                 <i class="fas fa-qrcode"></i> Scan QR Code
@@ -1040,7 +1021,7 @@
             </div>
         </div>
         
-        <!-- ========== PAGE: IZIN/SAKIT ========== -->
+        <!-- PAGE: IZIN/SAKIT -->
         <div class="page" id="pageIzin">
             <div class="page-title">
                 <i class="fas fa-notes-medical"></i> Input Izin / Sakit
@@ -1090,7 +1071,7 @@
             </div>
         </div>
         
-        <!-- ========== PAGE: REKAP ========== -->
+        <!-- PAGE: REKAP -->
         <div class="page" id="pageRekap">
             <div class="page-title">
                 <i class="fas fa-file-alt"></i> Rekap Kehadiran
@@ -1128,7 +1109,7 @@
             </div>
         </div>
         
-        <!-- ========== PAGE: SETTINGS ========== -->
+        <!-- PAGE: SETTINGS -->
         <div class="page" id="pageSettings">
             <div class="page-title">
                 <i class="fas fa-cog"></i> Pengaturan
@@ -1140,19 +1121,17 @@
         
     </main>
     
-    <!-- ============ FOOTER ============ -->
     <footer class="footer">
         &copy; 2026 <span>SMP NEGERI 1 SOBANG</span> - Sistem Absensi Digital v1.0 | Dikembangkan dengan <i class="fas fa-heart" style="color: #ef5350;"></i> untuk Pendidikan
     </footer>
     
-    <!-- ============ TOAST ============ -->
     <div id="toast" class="toast hidden"></div>
     
     <script>
         // ============================================================
         // KONFIGURASI - GANTI DENGAN URL WEB APP ANDA
         // ============================================================
-        var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyl0uVXbxmgZgtyf77bpg7tviqI3KZ_XXJOp6u3VODVy37CbLOG0sdBr_gY7DFxQhTF/exec';
+        var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNeeK--fL5IQoddcMJxAqt_ZvV-igcpFapaQ56nmciRdE6ldDmJYRgJ77DuKb52s3dCg/exec';
         
         // ============================================================
         // GLOBAL VARIABLES
@@ -1213,27 +1192,35 @@
         }
         
         // ============================================================
-        // API CALL FUNCTION
+        // API CALL FUNCTION - DIPERBAIKI
         // ============================================================
         function callScript(functionName, params, callback, errorCallback) {
-            var url = SCRIPT_URL + '?action=' + functionName;
+            var url = SCRIPT_URL + '?action=' + encodeURIComponent(functionName);
             
-            // Tambahkan parameter ke URL
             if (params) {
                 for (var key in params) {
-                    url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(JSON.stringify(params[key]));
+                    if (params[key] !== undefined && params[key] !== null) {
+                        var value = typeof params[key] === 'object' ? JSON.stringify(params[key]) : String(params[key]);
+                        url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(value);
+                    }
                 }
             }
+            
+            console.log('Calling URL:', url);
             
             fetch(url, {
                 method: 'GET',
                 mode: 'cors'
             })
-            .then(function(response) { return response.json(); })
+            .then(function(response) {
+                return response.json();
+            })
             .then(function(data) {
+                console.log('Response:', data);
                 if (callback) callback(data);
             })
             .catch(function(error) {
+                console.error('Fetch error:', error);
                 if (errorCallback) errorCallback(error);
                 else showToast('Error: ' + error.message, 'error');
             });
@@ -1312,7 +1299,7 @@
         }
         
         // ============================================================
-        // LOGIN
+        // LOGIN - DIPERBAIKI
         // ============================================================
         function showLoginForm(role) {
             currentLoginRole = role;
@@ -1326,17 +1313,22 @@
             var pin = document.getElementById('loginPin').value;
             var role = currentLoginRole;
             
+            showToast('Mencoba login...', 'info');
+            
             callScript('login', { pin: pin, role: role }, function(result) {
+                console.log('Login result:', result);
                 if (result.success) {
                     currentUser = result;
                     updateUserUI();
-                    showToast('Login berhasil!', 'success');
+                    showToast('Login berhasil! Selamat datang ' + result.name, 'success');
                     showPage('dashboard');
                     refreshDashboard();
                     updateMenuVisibility();
                 } else {
-                    showToast(result.message, 'error');
+                    showToast(result.message || 'Login gagal!', 'error');
                 }
+            }, function(error) {
+                showToast('Error: ' + error.message, 'error');
             });
         }
         
@@ -1392,6 +1384,11 @@
         // ============================================================
         function refreshDashboard() {
             callScript('getDashboardStats', {}, function(data) {
+                if (data.error) {
+                    showToast('Error: ' + data.error, 'error');
+                    return;
+                }
+                
                 document.getElementById('sTotal').textContent = data.siswa.total || 0;
                 document.getElementById('sHadir').textContent = data.siswa.hadir || 0;
                 document.getElementById('sTerlambat').textContent = data.siswa.terlambat || 0;
@@ -1428,11 +1425,17 @@
                 }
                 
                 loadSessionInfo();
+            }, function(error) {
+                showToast('Gagal memuat dashboard: ' + error.message, 'error');
             });
         }
         
         function loadSessionInfo() {
             callScript('getSessionInfo', {}, function(info) {
+                if (info.error) {
+                    console.warn('Session info error:', info.error);
+                    return;
+                }
                 document.getElementById('sessionTime').textContent = info.waktu || '--:--';
                 document.getElementById('sessionActive').textContent = info.currentSession || 'Tidak ada';
                 
@@ -1453,7 +1456,7 @@
         }
         
         // ============================================================
-        // SCANNER - Menggunakan kamera (tidak diblokir di GitHub Pages)
+        // SCANNER
         // ============================================================
         function startScanner() {
             var video = document.getElementById('scanner-video');
@@ -1487,8 +1490,6 @@
         
         function autoScan() {
             if (!isScanning) return;
-            // Untuk demo, kita tunggu input manual
-            // Di implementasi nyata, gunakan library jsQR
             setTimeout(autoScan, 2000);
         }
         
@@ -1550,7 +1551,7 @@
                     document.getElementById('izinSakitForm').reset();
                     document.getElementById('izinTanggal').value = getDateString(new Date());
                 } else {
-                    showToast(result.message, 'error');
+                    showToast(result.message || 'Gagal menyimpan', 'error');
                 }
             });
         }
@@ -1569,7 +1570,7 @@
             
             callScript('getRekap', { role: role, startDate: start, endDate: end }, function(data) {
                 var tbody = document.getElementById('rekapTableBodyFull');
-                if (data.length === 0) {
+                if (data.length === 0 || data.error) {
                     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #888; padding:20px;">Tidak ada data</td></tr>';
                 } else {
                     var html = '';
@@ -1599,7 +1600,7 @@
             }
             
             callScript('exportData', { role: role, startDate: start, endDate: end }, function(csv) {
-                if (csv) {
+                if (csv && csv.length > 0) {
                     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                     var link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
@@ -1630,7 +1631,7 @@
             
             callScript('searchAbsensi', { nisn: nisn, startDate: start, endDate: end }, function(data) {
                 var tbody = document.getElementById('searchTableBody');
-                if (data.length === 0) {
+                if (data.length === 0 || data.error) {
                     tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #888; padding:20px;">Tidak ditemukan</td></tr>';
                 } else {
                     var html = '';
@@ -1653,6 +1654,11 @@
         // ============================================================
         function loadSettings() {
             callScript('getSettings', {}, function(settings) {
+                if (settings.error) {
+                    document.getElementById('settingsContent').innerHTML = '<p style="color: red;">Error: ' + settings.error + '</p>';
+                    return;
+                }
+                
                 var container = document.getElementById('settingsContent');
                 var html = '<h3 style="margin-bottom:12px; color:#1a237e; font-size:16px;">Ubah PIN</h3>' +
                     '<div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:20px;">' +
@@ -1709,7 +1715,6 @@
                     '</div>';
                 
                 container.innerHTML = html;
-                
                 refreshDashboard();
             });
         }
@@ -1724,7 +1729,7 @@
                 if (result.success) {
                     showToast(result.message, 'success');
                 } else {
-                    showToast(result.message, 'error');
+                    showToast(result.message || 'Gagal update', 'error');
                 }
             });
         }
@@ -1741,7 +1746,7 @@
                     showToast(result.message, 'success');
                     document.getElementById(inputId).value = '';
                 } else {
-                    showToast(result.message, 'error');
+                    showToast(result.message || 'Gagal update PIN', 'error');
                 }
             });
         }
@@ -1750,7 +1755,6 @@
         // INIT
         // ============================================================
         document.addEventListener('DOMContentLoaded', function() {
-            // Panggil initSheets untuk membuat sheet jika belum ada
             callScript('initSheets', {}, function() {
                 console.log('Sheets initialized');
             });
