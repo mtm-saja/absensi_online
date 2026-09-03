@@ -7,325 +7,67 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: #f0f2f5;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; background: #f0f2f5; min-height: 100vh; display: flex; flex-direction: column; }
         
         .topbar {
             background: linear-gradient(135deg, #1a237e 0%, #0d47a1 50%, #1565c0 100%);
-            color: white;
-            padding: 10px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 1000;
-            height: 60px;
-            box-shadow: 0 2px 15px rgba(0,0,0,0.3);
+            color: white; padding: 10px 25px; display: flex; justify-content: space-between; align-items: center;
+            position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: 60px; box-shadow: 0 2px 15px rgba(0,0,0,0.3);
         }
-        
-        .topbar-left {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .topbar-left .menu-toggle {
-            display: none;
-            background: none;
-            border: none;
-            color: white;
-            font-size: 22px;
-            cursor: pointer;
-        }
-        
-        .topbar-left .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .topbar-left .logo i {
-            font-size: 24px;
-            background: rgba(255,255,255,0.15);
-            padding: 6px 10px;
-            border-radius: 8px;
-        }
-        
-        .topbar-left .logo h1 {
-            font-size: 16px;
-            font-weight: 600;
-            line-height: 1.2;
-        }
-        
-        .topbar-left .logo h1 small {
-            font-size: 10px;
-            font-weight: 300;
-            opacity: 0.8;
-            display: block;
-        }
-        
-        .topbar-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        
-        .topbar-right .datetime {
-            font-size: 12px;
-            opacity: 0.9;
-            text-align: right;
-        }
-        
-        .topbar-right .datetime .date {
-            font-weight: 300;
-            font-size: 10px;
-        }
-        
-        .topbar-right .user-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(255,255,255,0.12);
-            padding: 4px 12px 4px 8px;
-            border-radius: 20px;
-        }
-        
-        .topbar-right .user-info .avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 12px;
-        }
-        
-        .topbar-right .user-info .name {
-            font-size: 12px;
-            font-weight: 500;
-        }
-        
-        .topbar-right .user-info .role-badge {
-            font-size: 9px;
-            background: rgba(255,255,255,0.2);
-            padding: 2px 8px;
-            border-radius: 10px;
-        }
+        .topbar-left { display: flex; align-items: center; gap: 15px; }
+        .topbar-left .menu-toggle { display: none; background: none; border: none; color: white; font-size: 22px; cursor: pointer; }
+        .topbar-left .logo { display: flex; align-items: center; gap: 10px; }
+        .topbar-left .logo i { font-size: 24px; background: rgba(255,255,255,0.15); padding: 6px 10px; border-radius: 8px; }
+        .topbar-left .logo h1 { font-size: 16px; font-weight: 600; line-height: 1.2; }
+        .topbar-left .logo h1 small { font-size: 10px; font-weight: 300; opacity: 0.8; display: block; }
+        .topbar-right { display: flex; align-items: center; gap: 12px; }
+        .topbar-right .datetime { font-size: 12px; opacity: 0.9; text-align: right; }
+        .topbar-right .datetime .date { font-weight: 300; font-size: 10px; }
+        .topbar-right .user-info { display: flex; align-items: center; gap: 8px; background: rgba(255,255,255,0.12); padding: 4px 12px 4px 8px; border-radius: 20px; }
+        .topbar-right .user-info .avatar { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; }
+        .topbar-right .user-info .name { font-size: 12px; font-weight: 500; }
+        .topbar-right .user-info .role-badge { font-size: 9px; background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 10px; }
         
         .sidebar {
-            position: fixed;
-            top: 60px;
-            left: 0;
-            bottom: 0;
-            width: 230px;
-            background: white;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
-            overflow-y: auto;
-            z-index: 999;
-            transition: transform 0.3s ease;
-            padding: 15px 0;
+            position: fixed; top: 60px; left: 0; bottom: 0; width: 230px; background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05); overflow-y: auto; z-index: 999;
+            transition: transform 0.3s ease; padding: 15px 0;
         }
+        .sidebar::-webkit-scrollbar { width: 3px; }
+        .sidebar::-webkit-scrollbar-thumb { background: #1a237e; border-radius: 3px; }
+        .sidebar .menu-section { padding: 0 12px; margin-bottom: 12px; }
+        .sidebar .menu-section .section-title { font-size: 10px; text-transform: uppercase; color: #999; font-weight: 600; letter-spacing: 0.5px; padding: 0 10px; margin-bottom: 5px; }
+        .sidebar .menu-item { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-radius: 8px; color: #555; text-decoration: none; cursor: pointer; transition: all 0.3s; margin-bottom: 2px; font-size: 13px; font-weight: 500; }
+        .sidebar .menu-item:hover { background: #e8eaf6; color: #1a237e; }
+        .sidebar .menu-item.active { background: #e8eaf6; color: #1a237e; }
+        .sidebar .menu-item.active i { color: #1a237e; }
+        .sidebar .menu-item i { width: 18px; text-align: center; font-size: 14px; color: #888; }
+        .sidebar .menu-divider { height: 1px; background: #e0e0e0; margin: 10px 15px; }
+        .sidebar .menu-item.logout { color: #ef5350; margin-top: 5px; }
+        .sidebar .menu-item.logout:hover { background: #ffebee; }
+        .sidebar .menu-item.logout i { color: #ef5350; }
         
-        .sidebar::-webkit-scrollbar {
-            width: 3px;
-        }
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #1a237e;
-            border-radius: 3px;
-        }
+        .main-content { margin-left: 230px; margin-top: 60px; padding: 20px 25px; flex: 1; min-height: calc(100vh - 110px); }
+        .footer { background: white; border-top: 1px solid #e0e0e0; padding: 10px 25px; text-align: center; font-size: 11px; color: #888; margin-left: 230px; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; }
+        .footer span { color: #1a237e; font-weight: 500; }
         
-        .sidebar .menu-section {
-            padding: 0 12px;
-            margin-bottom: 12px;
-        }
+        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         
-        .sidebar .menu-section .section-title {
-            font-size: 10px;
-            text-transform: uppercase;
-            color: #999;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            padding: 0 10px;
-            margin-bottom: 5px;
-        }
+        .page-title { font-size: 20px; font-weight: 600; color: #1a237e; margin-bottom: 18px; display: flex; align-items: center; gap: 10px; }
+        .page-title i { color: #1a237e; font-size: 22px; }
         
-        .sidebar .menu-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 14px;
-            border-radius: 8px;
-            color: #555;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 2px;
-            font-size: 13px;
-            font-weight: 500;
-        }
-        
-        .sidebar .menu-item:hover {
-            background: #e8eaf6;
-            color: #1a237e;
-        }
-        .sidebar .menu-item.active {
-            background: #e8eaf6;
-            color: #1a237e;
-        }
-        .sidebar .menu-item.active i {
-            color: #1a237e;
-        }
-        .sidebar .menu-item i {
-            width: 18px;
-            text-align: center;
-            font-size: 14px;
-            color: #888;
-        }
-        .sidebar .menu-divider {
-            height: 1px;
-            background: #e0e0e0;
-            margin: 10px 15px;
-        }
-        .sidebar .menu-item.logout {
-            color: #ef5350;
-            margin-top: 5px;
-        }
-        .sidebar .menu-item.logout:hover {
-            background: #ffebee;
-        }
-        .sidebar .menu-item.logout i {
-            color: #ef5350;
-        }
-        
-        .main-content {
-            margin-left: 230px;
-            margin-top: 60px;
-            padding: 20px 25px;
-            flex: 1;
-            min-height: calc(100vh - 110px);
-        }
-        
-        .footer {
-            background: white;
-            border-top: 1px solid #e0e0e0;
-            padding: 10px 25px;
-            text-align: center;
-            font-size: 11px;
-            color: #888;
-            margin-left: 230px;
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 100;
-        }
-        .footer span {
-            color: #1a237e;
-            font-weight: 500;
-        }
-        
-        .page {
-            display: none;
-            animation: fadeIn 0.3s ease;
-        }
-        .page.active {
-            display: block;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        .page-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: #1a237e;
-            margin-bottom: 18px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .page-title i {
-            color: #1a237e;
-            font-size: 22px;
-        }
-        
-        .stats-section {
-            margin-bottom: 20px;
-        }
-        
-        .stats-section .stats-label {
-            font-size: 14px;
-            font-weight: 600;
-            color: #1a237e;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .stats-section .stats-label i {
-            font-size: 16px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(7, 1fr);
-            gap: 8px;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 10px 6px;
-            border-radius: 10px;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-            text-align: center;
-            transition: all 0.3s;
-            border-left: 3px solid #1a237e;
-        }
-        
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-        }
-        
-        .stat-card .number {
-            font-size: 20px;
-            font-weight: 700;
-            color: #1a237e;
-            line-height: 1.2;
-        }
-        
-        .stat-card .label {
-            font-size: 9px;
-            color: #888;
-            margin-top: 3px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-        
-        .stat-card .icon {
-            font-size: 14px;
-            margin-bottom: 4px;
-            display: block;
-        }
-        
+        .stats-section { margin-bottom: 20px; }
+        .stats-section .stats-label { font-size: 14px; font-weight: 600; color: #1a237e; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        .stats-section .stats-label i { font-size: 16px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+        .stat-card { background: white; padding: 10px 6px; border-radius: 10px; box-shadow: 0 1px 6px rgba(0,0,0,0.06); text-align: center; transition: all 0.3s; border-left: 3px solid #1a237e; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .stat-card .number { font-size: 20px; font-weight: 700; color: #1a237e; line-height: 1.2; }
+        .stat-card .label { font-size: 9px; color: #888; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .stat-card .icon { font-size: 14px; margin-bottom: 4px; display: block; }
         .stat-card.total { border-left-color: #1a237e; }
         .stat-card.total .number { color: #1a237e; }
         .stat-card.hadir { border-left-color: #4caf50; }
@@ -341,176 +83,42 @@
         .stat-card.bolos { border-left-color: #d32f2f; }
         .stat-card.bolos .number { color: #d32f2f; }
         
-        .session-info {
-            background: linear-gradient(135deg, #e8eaf6, #c5cae9);
-            padding: 15px 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 15px;
-        }
-        
-        .session-info .session-item {
-            text-align: center;
-        }
-        
-        .session-info .session-item .label {
-            font-size: 11px;
-            color: #555;
-            font-weight: 500;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .session-info .session-item .value {
-            font-size: 16px;
-            font-weight: 600;
-            color: #1a237e;
-            margin-top: 4px;
-        }
-        
-        .session-info .session-item .value .status-badge {
-            font-size: 12px;
-            font-weight: 500;
-            padding: 2px 12px;
-            border-radius: 12px;
-            display: inline-block;
-        }
-        
+        .session-info { background: linear-gradient(135deg, #e8eaf6, #c5cae9); padding: 15px 20px; border-radius: 12px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; }
+        .session-info .session-item { text-align: center; }
+        .session-info .session-item .label { font-size: 11px; color: #555; font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; }
+        .session-info .session-item .value { font-size: 16px; font-weight: 600; color: #1a237e; margin-top: 4px; }
+        .session-info .session-item .value .status-badge { font-size: 12px; font-weight: 500; padding: 2px 12px; border-radius: 12px; display: inline-block; }
         .status-badge.open { background: #4caf50; color: white; }
         .status-badge.closed { background: #f44336; color: white; }
         .status-badge.late { background: #ff9800; color: white; }
         
-        .table-container {
-            background: white;
-            border-radius: 12px;
-            padding: 15px 18px;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-            overflow-x: auto;
-        }
-        
-        .table-container .table-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        
-        .table-container .table-header h3 {
-            font-size: 14px;
-            color: #333;
-            font-weight: 600;
-        }
-        
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-        
-        th {
-            background: #f8fafc;
-            padding: 8px 12px;
-            text-align: left;
-            font-weight: 600;
-            color: #555;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            border-bottom: 2px solid #e0e0e0;
-        }
-        
-        td {
-            padding: 8px 12px;
-            border-bottom: 1px solid #f0f0f0;
-            font-size: 13px;
-        }
-        
-        tr:hover {
-            background: #f8fafc;
-        }
-        
-        .badge {
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 10px;
-            font-weight: 500;
-            display: inline-block;
-        }
-        
+        .table-container { background: white; border-radius: 12px; padding: 15px 18px; box-shadow: 0 1px 6px rgba(0,0,0,0.06); overflow-x: auto; }
+        .table-container .table-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+        .table-container .table-header h3 { font-size: 14px; color: #333; font-weight: 600; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { background: #f8fafc; padding: 8px 12px; text-align: left; font-weight: 600; color: #555; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 2px solid #e0e0e0; }
+        td { padding: 8px 12px; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+        tr:hover { background: #f8fafc; }
+        .badge { padding: 3px 10px; border-radius: 12px; font-size: 10px; font-weight: 500; display: inline-block; }
         .badge-success { background: #d1fae5; color: #065f46; }
         .badge-warning { background: #fef3c7; color: #92400e; }
         .badge-danger { background: #fee2e2; color: #991b1b; }
         .badge-info { background: #dbeafe; color: #1e40af; }
         .badge-purple { background: #ede9fe; color: #5b21b6; }
-        
-        .role-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 9px;
-            font-weight: 600;
-        }
+        .role-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 9px; font-weight: 600; }
         .role-badge.siswa { background: #dbeafe; color: #1e40af; }
         .role-badge.guru { background: #d1fae5; color: #065f46; }
         .role-badge.admin { background: #fef3c7; color: #92400e; }
         
-        .form-group {
-            margin-bottom: 14px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 4px;
-            font-weight: 500;
-            color: #555;
-            font-size: 13px;
-        }
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 8px 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 13px;
-            transition: all 0.3s;
-            font-family: 'Poppins', sans-serif;
-        }
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #1a237e;
-            box-shadow: 0 0 0 3px rgba(26,35,126,0.08);
-        }
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; margin-bottom: 4px; font-weight: 500; color: #555; font-size: 13px; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 13px; transition: all 0.3s; font-family: 'Poppins', sans-serif; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #1a237e; box-shadow: 0 0 0 3px rgba(26,35,126,0.08); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         
-        .btn {
-            padding: 8px 18px;
-            border: none;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: 'Poppins', sans-serif;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
-            color: white;
-        }
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(26,35,126,0.25);
-        }
+        .btn { padding: 8px 18px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-family: 'Poppins', sans-serif; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,35,126,0.25); }
         .btn-success { background: #4caf50; color: white; }
         .btn-success:hover { background: #388e3c; }
         .btn-danger { background: #ef5350; color: white; }
@@ -520,205 +128,60 @@
         .btn-info { background: #2196f3; color: white; }
         .btn-info:hover { background: #1976d2; }
         .btn-sm { padding: 5px 12px; font-size: 11px; }
-        .btn-outline {
-            background: transparent;
-            border: 2px solid #1a237e;
-            color: #1a237e;
-        }
-        .btn-outline:hover {
-            background: #1a237e;
-            color: white;
-        }
         
-        .search-box {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 12px;
-        }
-        .search-box input,
-        .search-box select {
-            padding: 7px 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 12px;
-            font-family: 'Poppins', sans-serif;
-        }
-        .search-box input:focus,
-        .search-box select:focus {
-            outline: none;
-            border-color: #1a237e;
-        }
+        .search-box { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .search-box input, .search-box select { padding: 7px 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 12px; font-family: 'Poppins', sans-serif; }
+        .search-box input:focus, .search-box select:focus { outline: none; border-color: #1a237e; }
         
-        .scanner-container {
-            background: white;
-            border-radius: 12px;
-            padding: 18px;
-            box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-            text-align: center;
-        }
-        #scanner-video {
-            max-width: 100%;
-            border-radius: 8px;
-            background: #000;
-            max-height: 350px;
-            width: 100%;
-        }
-        .scanner-controls {
-            margin-top: 12px;
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .scan-result {
-            margin-top: 12px;
-            padding: 12px;
-            background: #f8fafc;
-            border-radius: 8px;
-            display: none;
-        }
+        .scanner-container { background: white; border-radius: 12px; padding: 18px; box-shadow: 0 1px 6px rgba(0,0,0,0.06); text-align: center; }
+        #scanner-video { max-width: 100%; border-radius: 8px; background: #000; max-height: 350px; width: 100%; }
+        .scanner-controls { margin-top: 12px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+        .scan-result { margin-top: 12px; padding: 12px; background: #f8fafc; border-radius: 8px; display: none; }
         .scan-result.success { display: block; border-left: 3px solid #4caf50; }
         .scan-result.error { display: block; border-left: 3px solid #ef5350; }
         
-        .toast {
-            position: fixed;
-            bottom: 70px;
-            right: 20px;
-            padding: 12px 20px;
-            border-radius: 10px;
-            color: white;
-            font-weight: 500;
-            z-index: 2000;
-            animation: slideIn 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            max-width: 350px;
-            font-size: 13px;
-        }
+        .toast { position: fixed; bottom: 70px; right: 20px; padding: 12px 20px; border-radius: 10px; color: white; font-weight: 500; z-index: 2000; animation: slideIn 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.15); max-width: 350px; font-size: 13px; }
         .toast.success { background: #4caf50; }
         .toast.error { background: #ef5350; }
         .toast.info { background: #2196f3; }
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
         .hidden { display: none !important; }
         
-        .sidebar-overlay {
-            display: none;
-            position: fixed;
-            top: 60px;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.3);
-            z-index: 998;
-        }
-        .sidebar-overlay.active {
-            display: block;
-        }
+        .sidebar-overlay { display: none; position: fixed; top: 60px; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); z-index: 998; }
+        .sidebar-overlay.active { display: block; }
         
         @media (max-width: 992px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            .topbar-left .menu-toggle {
-                display: block;
-            }
-            .main-content {
-                margin-left: 0;
-                padding: 15px;
-            }
-            .footer {
-                margin-left: 0;
-                padding: 8px 15px;
-                font-size: 10px;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(7, 1fr);
-                gap: 5px;
-            }
-            .stat-card .number {
-                font-size: 16px;
-            }
-            .stat-card .label {
-                font-size: 8px;
-            }
-            .session-info {
-                grid-template-columns: 1fr;
-                gap: 8px;
-                padding: 12px 15px;
-            }
-            .session-info .session-item .value {
-                font-size: 14px;
-            }
-            .form-row {
-                grid-template-columns: 1fr;
-            }
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .topbar-left .menu-toggle { display: block; }
+            .main-content { margin-left: 0; padding: 15px; }
+            .footer { margin-left: 0; padding: 8px 15px; font-size: 10px; }
+            .stats-grid { grid-template-columns: repeat(7, 1fr); gap: 5px; }
+            .stat-card .number { font-size: 16px; }
+            .stat-card .label { font-size: 8px; }
+            .session-info { grid-template-columns: 1fr; gap: 8px; padding: 12px 15px; }
+            .session-info .session-item .value { font-size: 14px; }
+            .form-row { grid-template-columns: 1fr; }
         }
-        
         @media (max-width: 600px) {
-            .topbar-left .logo h1 {
-                font-size: 13px;
-            }
-            .topbar-left .logo h1 small {
-                font-size: 8px;
-            }
-            .topbar-right .datetime {
-                display: none;
-            }
-            .topbar-right .user-info .name {
-                font-size: 10px;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(4, 1fr);
-            }
-            .stat-card {
-                padding: 6px 4px;
-            }
-            .stat-card .number {
-                font-size: 14px;
-            }
-            .stat-card .label {
-                font-size: 7px;
-            }
-            .stat-card .icon {
-                font-size: 11px;
-            }
-            .main-content {
-                padding: 10px;
-                padding-bottom: 60px;
-            }
-            .page-title {
-                font-size: 16px;
-            }
-            .search-box {
-                flex-direction: column;
-            }
-            .search-box input,
-            .search-box select,
-            .search-box .btn {
-                width: 100%;
-            }
-            .table-container {
-                padding: 10px 8px;
-            }
-            table {
-                font-size: 11px;
-            }
-            th, td {
-                padding: 5px 8px;
-            }
+            .topbar-left .logo h1 { font-size: 13px; }
+            .topbar-left .logo h1 small { font-size: 8px; }
+            .topbar-right .datetime { display: none; }
+            .topbar-right .user-info .name { font-size: 10px; }
+            .stats-grid { grid-template-columns: repeat(4, 1fr); }
+            .stat-card { padding: 6px 4px; }
+            .stat-card .number { font-size: 14px; }
+            .stat-card .label { font-size: 7px; }
+            .stat-card .icon { font-size: 11px; }
+            .main-content { padding: 10px; padding-bottom: 60px; }
+            .page-title { font-size: 16px; }
+            .search-box { flex-direction: column; }
+            .search-box input, .search-box select, .search-box .btn { width: 100%; }
+            .table-container { padding: 10px 8px; }
+            table { font-size: 11px; }
+            th, td { padding: 5px 8px; }
         }
-        
-        @media (max-width: 400px) {
-            .stats-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-        }
+        @media (max-width: 400px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
     </style>
 </head>
 <body>
@@ -1131,7 +594,7 @@
         // ============================================================
         // KONFIGURASI - GANTI DENGAN URL WEB APP ANDA
         // ============================================================
-        var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwNeeK--fL5IQoddcMJxAqt_ZvV-igcpFapaQ56nmciRdE6ldDmJYRgJ77DuKb52s3dCg/exec';
+        var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz7JGzi7Mrf1IIKE93Ev-tq9kP6W3qCQpsAM2Xo67vla_Vs7eqnzo9iHiu9-FiaynV_FA/exec';
         
         // ============================================================
         // GLOBAL VARIABLES
@@ -1140,6 +603,7 @@
         var scannerStream = null;
         var isScanning = false;
         var currentLoginRole = 'guru';
+        var isInitialized = false;
         
         // ============================================================
         // UTILITY FUNCTIONS
@@ -1192,7 +656,7 @@
         }
         
         // ============================================================
-        // API CALL FUNCTION - DIPERBAIKI
+        // API CALL FUNCTION
         // ============================================================
         function callScript(functionName, params, callback, errorCallback) {
             var url = SCRIPT_URL + '?action=' + encodeURIComponent(functionName);
@@ -1206,7 +670,8 @@
                 }
             }
             
-            console.log('Calling URL:', url);
+            console.log('📡 Calling API:', functionName);
+            console.log('🔗 URL:', url);
             
             fetch(url, {
                 method: 'GET',
@@ -1216,11 +681,11 @@
                 return response.json();
             })
             .then(function(data) {
-                console.log('Response:', data);
+                console.log('📥 Response:', functionName, data);
                 if (callback) callback(data);
             })
             .catch(function(error) {
-                console.error('Fetch error:', error);
+                console.error('❌ Fetch error:', error);
                 if (errorCallback) errorCallback(error);
                 else showToast('Error: ' + error.message, 'error');
             });
@@ -1299,7 +764,7 @@
         }
         
         // ============================================================
-        // LOGIN - DIPERBAIKI
+        // LOGIN
         // ============================================================
         function showLoginForm(role) {
             currentLoginRole = role;
@@ -1313,29 +778,30 @@
             var pin = document.getElementById('loginPin').value;
             var role = currentLoginRole;
             
-            showToast('Mencoba login...', 'info');
+            showToast('🔄 Mencoba login...', 'info');
             
             callScript('login', { pin: pin, role: role }, function(result) {
                 console.log('Login result:', result);
-                if (result.success) {
+                if (result && result.success) {
                     currentUser = result;
                     updateUserUI();
-                    showToast('Login berhasil! Selamat datang ' + result.name, 'success');
+                    showToast('✅ Login berhasil! Selamat datang ' + result.name, 'success');
                     showPage('dashboard');
                     refreshDashboard();
                     updateMenuVisibility();
                 } else {
-                    showToast(result.message || 'Login gagal!', 'error');
+                    var msg = result && result.message ? result.message : 'Login gagal!';
+                    showToast('❌ ' + msg, 'error');
                 }
             }, function(error) {
-                showToast('Error: ' + error.message, 'error');
+                showToast('❌ Error: ' + error.message, 'error');
             });
         }
         
         function logout() {
             currentUser = null;
             updateUserUI();
-            showToast('Logout berhasil!', 'info');
+            showToast('✅ Logout berhasil!', 'info');
             showPage('dashboard');
             refreshDashboard();
             updateMenuVisibility();
@@ -1384,28 +850,33 @@
         // ============================================================
         function refreshDashboard() {
             callScript('getDashboardStats', {}, function(data) {
-                if (data.error) {
-                    showToast('Error: ' + data.error, 'error');
+                if (data && data.error) {
+                    showToast('⚠️ Error: ' + data.error, 'error');
                     return;
                 }
                 
-                document.getElementById('sTotal').textContent = data.siswa.total || 0;
-                document.getElementById('sHadir').textContent = data.siswa.hadir || 0;
-                document.getElementById('sTerlambat').textContent = data.siswa.terlambat || 0;
-                document.getElementById('sIzin').textContent = data.siswa.izin || 0;
-                document.getElementById('sSakit').textContent = data.siswa.sakit || 0;
-                document.getElementById('sAlpa').textContent = data.siswa.alpa || 0;
-                document.getElementById('sBolos').textContent = data.siswa.bolos || 0;
+                if (!data) {
+                    showToast('⚠️ Tidak ada data', 'error');
+                    return;
+                }
                 
-                document.getElementById('gTotal').textContent = data.guru.total || 0;
-                document.getElementById('gHadir').textContent = data.guru.hadir || 0;
-                document.getElementById('gTerlambat').textContent = data.guru.terlambat || 0;
-                document.getElementById('gIzin').textContent = data.guru.izin || 0;
-                document.getElementById('gSakit').textContent = data.guru.sakit || 0;
-                document.getElementById('gAlpa').textContent = data.guru.alpa || 0;
-                document.getElementById('gBolos').textContent = data.guru.bolos || 0;
+                document.getElementById('sTotal').textContent = (data.siswa && data.siswa.total) || 0;
+                document.getElementById('sHadir').textContent = (data.siswa && data.siswa.hadir) || 0;
+                document.getElementById('sTerlambat').textContent = (data.siswa && data.siswa.terlambat) || 0;
+                document.getElementById('sIzin').textContent = (data.siswa && data.siswa.izin) || 0;
+                document.getElementById('sSakit').textContent = (data.siswa && data.siswa.sakit) || 0;
+                document.getElementById('sAlpa').textContent = (data.siswa && data.siswa.alpa) || 0;
+                document.getElementById('sBolos').textContent = (data.siswa && data.siswa.bolos) || 0;
                 
-                var rekap = data.rekapHariIni || [];
+                document.getElementById('gTotal').textContent = (data.guru && data.guru.total) || 0;
+                document.getElementById('gHadir').textContent = (data.guru && data.guru.hadir) || 0;
+                document.getElementById('gTerlambat').textContent = (data.guru && data.guru.terlambat) || 0;
+                document.getElementById('gIzin').textContent = (data.guru && data.guru.izin) || 0;
+                document.getElementById('gSakit').textContent = (data.guru && data.guru.sakit) || 0;
+                document.getElementById('gAlpa').textContent = (data.guru && data.guru.alpa) || 0;
+                document.getElementById('gBolos').textContent = (data.guru && data.guru.bolos) || 0;
+                
+                var rekap = (data.rekapHariIni) || [];
                 var tbody = document.getElementById('rekapTableBody');
                 if (rekap.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #888; padding:20px;">Belum ada data hari ini</td></tr>';
@@ -1415,7 +886,7 @@
                         var row = rekap[i];
                         html += '<tr>' +
                             '<td>' + (row.nama || '-') + '</td>' +
-                            '<td><span class="role-badge ' + row.role + '">' + (row.role || '-') + '</span></td>' +
+                            '<td><span class="role-badge ' + (row.role || '') + '">' + (row.role || '-') + '</span></td>' +
                             '<td>' + (row.sesi || '-') + '</td>' +
                             '<td>' + (row.waktu ? formatTime(new Date(row.waktu)) : '-') + '</td>' +
                             '<td><span class="badge badge-' + getBadgeClass(row.status) + '">' + (row.status || '-') + '</span></td>' +
@@ -1426,16 +897,18 @@
                 
                 loadSessionInfo();
             }, function(error) {
-                showToast('Gagal memuat dashboard: ' + error.message, 'error');
+                showToast('⚠️ Gagal memuat dashboard: ' + error.message, 'error');
             });
         }
         
         function loadSessionInfo() {
             callScript('getSessionInfo', {}, function(info) {
-                if (info.error) {
+                if (info && info.error) {
                     console.warn('Session info error:', info.error);
                     return;
                 }
+                if (!info) return;
+                
                 document.getElementById('sessionTime').textContent = info.waktu || '--:--';
                 document.getElementById('sessionActive').textContent = info.currentSession || 'Tidak ada';
                 
@@ -1509,7 +982,7 @@
             resultDiv.className = 'scan-result';
             
             callScript('scanQR', { qrData: qrData, role: currentUser.role }, function(result) {
-                if (result.success) {
+                if (result && result.success) {
                     resultDiv.className = 'scan-result success';
                     resultDiv.innerHTML = '<div style="color: #065f46; text-align:left;">' +
                         '<i class="fas fa-check-circle" style="font-size:20px;"></i>' +
@@ -1524,9 +997,9 @@
                     resultDiv.className = 'scan-result error';
                     resultDiv.innerHTML = '<div style="color: #991b1b;">' +
                         '<i class="fas fa-times-circle" style="font-size:20px;"></i>' +
-                        '<strong style="margin-left:8px;">' + result.message + '</strong>' +
+                        '<strong style="margin-left:8px;">' + (result && result.message ? result.message : 'Gagal scan') + '</strong>' +
                     '</div>';
-                    showToast(result.message, 'error');
+                    showToast(result && result.message ? result.message : 'Gagal scan', 'error');
                 }
             });
         }
@@ -1546,12 +1019,12 @@
             };
             
             callScript('inputIzinSakit', { data: data }, function(result) {
-                if (result.success) {
-                    showToast(result.message, 'success');
+                if (result && result.success) {
+                    showToast('✅ ' + result.message, 'success');
                     document.getElementById('izinSakitForm').reset();
                     document.getElementById('izinTanggal').value = getDateString(new Date());
                 } else {
-                    showToast(result.message || 'Gagal menyimpan', 'error');
+                    showToast('❌ ' + (result && result.message ? result.message : 'Gagal menyimpan'), 'error');
                 }
             });
         }
@@ -1570,7 +1043,7 @@
             
             callScript('getRekap', { role: role, startDate: start, endDate: end }, function(data) {
                 var tbody = document.getElementById('rekapTableBodyFull');
-                if (data.length === 0 || data.error) {
+                if (!data || data.length === 0 || data.error) {
                     tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #888; padding:20px;">Tidak ada data</td></tr>';
                 } else {
                     var html = '';
@@ -1600,15 +1073,15 @@
             }
             
             callScript('exportData', { role: role, startDate: start, endDate: end }, function(csv) {
-                if (csv && csv.length > 0) {
+                if (csv && csv.length > 0 && !csv.error) {
                     var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
                     var link = document.createElement('a');
                     link.href = URL.createObjectURL(blob);
                     link.download = 'rekap_' + role + '_' + start + '_' + end + '.csv';
                     link.click();
-                    showToast('Export berhasil!', 'success');
+                    showToast('✅ Export berhasil!', 'success');
                 } else {
-                    showToast('Tidak ada data untuk diexport', 'error');
+                    showToast('❌ Tidak ada data untuk diexport', 'error');
                 }
             });
         }
@@ -1631,7 +1104,7 @@
             
             callScript('searchAbsensi', { nisn: nisn, startDate: start, endDate: end }, function(data) {
                 var tbody = document.getElementById('searchTableBody');
-                if (data.length === 0 || data.error) {
+                if (!data || data.length === 0 || data.error) {
                     tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: #888; padding:20px;">Tidak ditemukan</td></tr>';
                 } else {
                     var html = '';
@@ -1654,8 +1127,13 @@
         // ============================================================
         function loadSettings() {
             callScript('getSettings', {}, function(settings) {
-                if (settings.error) {
-                    document.getElementById('settingsContent').innerHTML = '<p style="color: red;">Error: ' + settings.error + '</p>';
+                if (settings && settings.error) {
+                    document.getElementById('settingsContent').innerHTML = '<p style="color: red;">❌ Error: ' + settings.error + '</p>';
+                    return;
+                }
+                
+                if (!settings) {
+                    document.getElementById('settingsContent').innerHTML = '<p style="color: red;">❌ Gagal memuat pengaturan</p>';
                     return;
                 }
                 
@@ -1708,14 +1186,12 @@
                     '</div>' +
                     '<h3 style="margin-bottom:12px; color:#1a237e; font-size:16px;">Info Sistem</h3>' +
                     '<div style="background:#f8fafc; padding:12px 15px; border-radius:8px; font-size:13px;">' +
-                        '<p><strong>Total Siswa:</strong> <span id="totalSiswa">Loading...</span></p>' +
-                        '<p><strong>Total Guru:</strong> <span id="totalGuru">Loading...</span></p>' +
+                        '<p><strong>Status:</strong> <span style="color:#4caf50;">✅ Sistem Online</span></p>' +
                         '<p><strong>Versi:</strong> 1.0.0</p>' +
                         '<p><strong>SMP Negeri 1 Sobang</strong></p>' +
                     '</div>';
                 
                 container.innerHTML = html;
-                refreshDashboard();
             });
         }
         
@@ -1726,10 +1202,10 @@
                 return;
             }
             callScript('updateSetting', { key: key, value: value }, function(result) {
-                if (result.success) {
-                    showToast(result.message, 'success');
+                if (result && result.success) {
+                    showToast('✅ ' + result.message, 'success');
                 } else {
-                    showToast(result.message || 'Gagal update', 'error');
+                    showToast('❌ ' + (result && result.message ? result.message : 'Gagal update'), 'error');
                 }
             });
         }
@@ -1742,11 +1218,11 @@
                 return;
             }
             callScript('updatePIN', { role: role, newPin: newPin }, function(result) {
-                if (result.success) {
-                    showToast(result.message, 'success');
+                if (result && result.success) {
+                    showToast('✅ ' + result.message, 'success');
                     document.getElementById(inputId).value = '';
                 } else {
-                    showToast(result.message || 'Gagal update PIN', 'error');
+                    showToast('❌ ' + (result && result.message ? result.message : 'Gagal update PIN'), 'error');
                 }
             });
         }
@@ -1754,22 +1230,38 @@
         // ============================================================
         // INIT
         // ============================================================
-        document.addEventListener('DOMContentLoaded', function() {
-            callScript('initSheets', {}, function() {
-                console.log('Sheets initialized');
+        function initializeApp() {
+            console.log('🚀 Initializing app...');
+            
+            // Inisialisasi sheet
+            callScript('initSheets', {}, function(result) {
+                console.log('📋 Init sheets result:', result);
+                if (result && result.success) {
+                    console.log('✅ Sheets initialized successfully');
+                    showToast('✅ Sistem siap digunakan!', 'success');
+                } else {
+                    var msg = result && result.message ? result.message : 'Gagal inisialisasi';
+                    console.warn('⚠️ ' + msg);
+                    showToast('⚠️ ' + msg, 'error');
+                }
+                
+                // Setelah inisialisasi, load data
+                updateUserUI();
+                updateMenuVisibility();
+                refreshDashboard();
+                
+                var now = new Date();
+                var start = new Date(now.getFullYear(), now.getMonth(), 1);
+                document.getElementById('searchStart').value = getDateString(start);
+                document.getElementById('searchEnd').value = getDateString(now);
+                document.getElementById('rekapStart').value = getDateString(start);
+                document.getElementById('rekapEnd').value = getDateString(now);
+                document.getElementById('izinTanggal').value = getDateString(now);
             });
-            
-            updateUserUI();
-            updateMenuVisibility();
-            refreshDashboard();
-            
-            var now = new Date();
-            var start = new Date(now.getFullYear(), now.getMonth(), 1);
-            document.getElementById('searchStart').value = getDateString(start);
-            document.getElementById('searchEnd').value = getDateString(now);
-            document.getElementById('rekapStart').value = getDateString(start);
-            document.getElementById('rekapEnd').value = getDateString(now);
-            document.getElementById('izinTanggal').value = getDateString(now);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
         });
         
         document.addEventListener('keydown', function(e) {
