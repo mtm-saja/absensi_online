@@ -7,7 +7,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Semua CSS Sama Persis Seperti Sebelumnya */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Poppins', sans-serif; background: #f0f2f5; min-height: 100vh; display: flex; flex-direction: column; }
         .topbar { background: linear-gradient(135deg, #1a237e 0%, #0d47a1 50%, #1565c0 100%); color: white; padding: 10px 25px; display: flex; justify-content: space-between; align-items: center; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; height: 60px; box-shadow: 0 2px 15px rgba(0,0,0,0.3); }
@@ -326,7 +325,7 @@
         // ============================================================
         // KONFIGURASI - GANTI DENGAN URL WEB APP ANDA
         // ============================================================
-        var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbx_va8HJHf_YlZb81OXrF_IEpq6bPi8aAUbflBB75zGs9_f1YgfiRONgOvm5syDiHU6cg/exec';
+        var SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwx7R34F5iby1qlz_ceGBTWQpyPNWGVxvMyrcvtfWFkhY1AISfTst9vxUxGM-hG3yu5/exec';
         
         // ============================================================
         // GLOBAL VARIABLES
@@ -353,18 +352,25 @@
             return date.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
         }
         
-        function formatTime(dateStr) {
-            if (!dateStr) return '-';
-            // Handle date object or string
-            if (dateStr instanceof Date) {
-                return dateStr.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        // Fungsi time formatter yang sangat aman
+        function formatTime(timeVal) {
+            if (!timeVal) return '-';
+            if (timeVal instanceof Date) return timeVal.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            
+            var str = String(timeVal);
+            if (str.indexOf('T') !== -1) str = str.split('T')[1];
+            
+            // Bersihkan dari AM/PM jika ada
+            if (str.indexOf('PM') !== -1 || str.indexOf('AM') !== -1) {
+                var isPM = str.indexOf('PM') !== -1;
+                var parts = str.replace(/[AaPp][Mm]/g, '').trim().split(':');
+                var hour = parseInt(parts[0], 10);
+                if (isPM && hour < 12) hour += 12;
+                if (!isPM && hour === 12) hour = 0;
+                parts[0] = ("0" + hour).slice(-2);
+                str = parts.join(':');
             }
-            // Jika hanya "HH:mm" langsung dikembalikan
-            if (typeof dateStr === 'string' && dateStr.length === 5) return dateStr; 
-            // Jika string datetime panjang (format UTC), convert
-            var d = new Date(dateStr);
-            if (!isNaN(d.getTime())) return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-            return String(dateStr).substring(0, 5); // Fallback
+            return str.substring(0, 5);
         }
         
         function getDateString(date) { return date.toISOString().split('T')[0]; }
@@ -383,32 +389,18 @@
             if (params) {
                 for (var key in params) {
                     if (params[key] !== undefined && params[key] !== null) {
-                        var value = params[key]; // Jangan di-stringify datanya lagi
-                        url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(value);
+                        url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
                     }
                 }
             }
             
-            console.log('📡 Calling API:', functionName);
-            console.log('🔗 URL:', url);
-            
             fetch(url, { method: 'GET', mode: 'cors' })
             .then(function(response) { return response.text(); })
             .then(function(text) {
-                console.log('📥 Raw response:', text.substring(0, 200));
-                try {
-                    var data = JSON.parse(text);
-                    if (callback) callback(data);
-                } catch (e) {
-                    console.error('❌ Invalid JSON:', e.message);
-                    if (callback) callback({ error: 'Invalid JSON response', raw: text });
-                }
+                try { var data = JSON.parse(text); if (callback) callback(data); }
+                catch (e) { if (callback) callback({ error: 'Invalid JSON response', raw: text }); }
             })
-            .catch(function(error) {
-                console.error('❌ Fetch error:', error);
-                if (errorCallback) errorCallback(error);
-                else showToast('Error: ' + error.message, 'error');
-            });
+            .catch(function(error) { if (errorCallback) errorCallback(error); else showToast('Error: ' + error.message, 'error'); });
         }
         
         // ============================================================
@@ -565,9 +557,8 @@
                 
                 var rekap = data.rekapHariIni || [];
                 var tbody = document.getElementById('rekapTableBody');
-                if (rekap.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #888; padding:20px;">Belum ada data hari ini</td></tr>';
-                } else {
+                if (rekap.length === 0) tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #888; padding:20px;">Belum ada data hari ini</td></tr>';
+                else {
                     var html = '';
                     for (var i = 0; i < rekap.length; i++) {
                         var row = rekap[i];
@@ -641,33 +632,25 @@
         }
         
         // ============================================================
-        // IZIN/SAKIT (DIPERBAIKI!)
+        // IZIN/SAKIT
         // ============================================================
         function handleIzinSakit(event) {
             event.preventDefault();
-            var id = document.getElementById('izinId').value;
-            var nama = document.getElementById('izinNama').value;
-            var role = document.getElementById('izinRole').value;
-            var tanggal = document.getElementById('izinTanggal').value;
-            var jenis = document.getElementById('izinJenis').value;
-            var keterangan = document.getElementById('izinKeterangan').value;
+            var data = {
+                id: document.getElementById('izinId').value,
+                nama: document.getElementById('izinNama').value,
+                role: document.getElementById('izinRole').value,
+                tanggal: document.getElementById('izinTanggal').value,
+                jenis: document.getElementById('izinJenis').value,
+                keterangan: document.getElementById('izinKeterangan').value
+            };
             
-            // Kirim parameter langsung agar tidak error di backend
-            callScript('inputIzinSakit', { 
-                id: id, 
-                nama: nama, 
-                role: role, 
-                tanggal: tanggal, 
-                jenis: jenis, 
-                keterangan: keterangan 
-            }, function(result) {
+            callScript('inputIzinSakit', data, function(result) {
                 if (result && result.success) {
                     showToast('✅ ' + result.message, 'success');
                     document.getElementById('izinSakitForm').reset();
                     document.getElementById('izinTanggal').value = getDateString(new Date());
-                } else {
-                    showToast('❌ ' + (result && result.message ? result.message : 'Gagal menyimpan'), 'error');
-                }
+                } else showToast('❌ ' + (result && result.message ? result.message : 'Gagal menyimpan'), 'error');
             });
         }
         
@@ -682,9 +665,8 @@
             
             callScript('getRekap', { role: role, startDate: start, endDate: end }, function(data) {
                 var tbody = document.getElementById('rekapTableBodyFull');
-                if (!data || data.length === 0 || data.error) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #888; padding:20px;">Tidak ada data</td></tr>';
-                } else {
+                if (!data || data.length === 0 || data.error) tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #888; padding:20px;">Tidak ada data</td></tr>';
+                else {
                     var html = '';
                     for (var i = 0; i < data.length; i++) {
                         var row = data[i];
@@ -762,9 +744,19 @@
                 
                 for (var i = 0; i < timeSettings.length; i++) {
                     var s = timeSettings[i];
-                    // Tampilkan nilai tanpa bagian tanggal yang tidak valid
                     var val = settings[s.key] || '';
                     if (val.includes('T')) val = val.split('T')[1].substring(0, 5);
+                    // Bersihkan juga jika ada AM/PM di nilai database
+                    if (val.includes('PM') || val.includes('AM')) {
+                        var isPM = val.includes('PM');
+                        var parts = val.replace(/[AaPp][Mm]/g, '').trim().split(':');
+                        var hour = parseInt(parts[0], 10);
+                        if (isPM && hour < 12) hour += 12;
+                        if (!isPM && hour === 12) hour = 0;
+                        parts[0] = ("0" + hour).slice(-2);
+                        val = parts.join(':').substring(0, 5);
+                    }
+                    
                     html += '<div><label style="font-size:10px; font-weight:500;">' + s.label + '</label><input type="time" id="setting_' + s.key + '" value="' + val + '" style="width:100%; padding:6px 10px; border:2px solid #e0e0e0; border-radius:8px; margin:3px 0;"><button class="btn btn-sm btn-success" onclick="updateSetting(\'' + s.key + '\')">Update</button></div>';
                 }
                 
@@ -782,9 +774,8 @@
         
         function updateSetting(key) {
             var input = document.getElementById('setting_' + key);
-            // Ambil nilai dan ubah ke format HH:mm sebelum dikirim
+            // Ambil nilai dari input time (biasanya sudah HH:mm)
             var value = input.value;
-            if (value && value.includes('T')) value = value.split('T')[1].substring(0, 5);
             
             if (!value) { showToast('Nilai tidak boleh kosong', 'error'); return; }
             callScript('updateSetting', { key: key, value: value }, function(result) {
@@ -810,9 +801,8 @@
             console.log('🚀 Initializing app...');
             callScript('initSheets', {}, function(result) {
                 console.log('📋 Init sheets result:', result);
-                if (result && result.success) {
-                    showToast('✅ Sistem siap digunakan!', 'success');
-                } else showToast('⚠️ Gagal inisialisasi', 'error');
+                if (result && result.success) showToast('✅ Sistem siap digunakan!', 'success');
+                else showToast('⚠️ Gagal inisialisasi', 'error');
                 
                 updateUserUI();
                 updateMenuVisibility();
